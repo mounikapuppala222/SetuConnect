@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SetuConnect - Portable Digital Identity for Migrant Workers</title>
+  <!-- Google Fonts & Icon Libraries -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+  <!-- QRCode.js Library CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- Chart.js Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <!-- Mobile Device Shell (Visible on Desktop, Fullscreen on Mobile) -->
+  <div class="device-mockup">
+    <div class="app-screen">
+      
+      <!-- Toast Alert Notifications Container -->
+      <div id="toast-container" class="toast-container"></div>
+
+      <!-- App Header Panel (Shared across views) -->
+      <header class="app-header">
+        <div class="app-brand">
+          <div class="header-logo-container" onclick="if(currentUser) showScreen(currentRole === 'worker' ? 'dashboard-screen' : currentRole === 'nodal' ? 'nodal-screen' : currentRole === 'employer' ? 'employer-screen' : 'admin-screen')">
+            <img src="header-logo.png" alt="SetuConnect" class="header-logo-img">
+          </div>
+          <span id="app-header-role-badge" class="header-role-badge hidden"></span>
+        </div>
+        <div class="app-header-actions">
+          <!-- Language Selector -->
+          <div style="position: relative;">
+            <button class="header-btn" id="lang-select-btn" onclick="document.getElementById('lang-dropdown').classList.toggle('hidden')">
+              English
+            </button>
+            <div id="lang-dropdown" class="glass-card hidden" style="position: absolute; right: 0; top: 48px; width: 140px; padding: 8px; z-index: 110; display:flex; flex-direction:column; gap:4px; background:rgba(20,22,30,0.95);">
+              <button class="btn-secondary" style="padding:6px; font-size:0.8rem; border-radius:6px; text-align:left;" onclick="handleLanguageChange('english'); document.getElementById('lang-dropdown').classList.add('hidden')">English</button>
+              <button class="btn-secondary" style="padding:6px; font-size:0.8rem; border-radius:6px; text-align:left;" onclick="handleLanguageChange('hindi'); document.getElementById('lang-dropdown').classList.add('hidden')">Hindi (हिंदी)</button>
+              <button class="btn-secondary" style="padding:6px; font-size:0.8rem; border-radius:6px; text-align:left;" onclick="handleLanguageChange('telugu'); document.getElementById('lang-dropdown').classList.add('hidden')">Telugu (తెలుగు)</button>
+              <button class="btn-secondary" style="padding:6px; font-size:0.8rem; border-radius:6px; text-align:left;" onclick="handleLanguageChange('tamil'); document.getElementById('lang-dropdown').classList.add('hidden')">Tamil (தமிழ்)</button>
+              <button class="btn-secondary" style="padding:6px; font-size:0.8rem; border-radius:6px; text-align:left;" onclick="handleLanguageChange('kannada'); document.getElementById('lang-dropdown').classList.add('hidden')">Kannada (ಕನ್ನಡ)</button>
+            </div>
+          </div>
+          <!-- Notifications Icon -->
+          <button class="header-btn" onclick="showScreen('notif-screen')">
+            <i class="fas fa-bell"></i>
+            <span id="notif-badge-count" class="badge-dot hidden"></span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Screens Viewport (Render target) -->
+      <main class="screens-viewport">
+
+        <!-- SCREEN 1: User Login / Authentication -->
+        <div id="auth-screen" class="app-screen-view">
+          <div class="text-center" style="margin: 25px 0 16px 0;">
+            <div class="auth-logo-badge">
+              <img src="logo.png" alt="SetuConnect" class="auth-logo-img">
+            </div>
+            <p class="text-muted" style="margin-top: 8px; font-size: 0.85rem;">Connecting Migrant Workers to Portable Identity & Welfare</p>
+          </div>
+
+          <!-- Phone Form -->
+          <div id="login-form-container" class="glass-card">
+            <h2 class="title-sm" style="margin-bottom:12px;">Login or Register</h2>
+            <div class="form-group">
+              <label for="login-phone">Enter Mobile Number</label>
+              <div style="position:relative; display:flex; align-items:center;">
+                <span style="position:absolute; left:12px; font-weight:600; color:var(--text-muted);">+91</span>
+                <input type="tel" id="login-phone" class="input-field" placeholder="10-digit number" style="padding-left:52px;" maxlength="10">
+              </div>
+            </div>
+            <button class="btn-primary" onclick="handleLoginSubmit()">
+              Get OTP Verification <i class="fas fa-arrow-right"></i>
+            </button>
+            <div style="margin-top:20px; text-align:center; font-size:0.8rem;">
+              <span class="text-muted">New user? </span><a href="#" style="color:var(--primary); font-weight:600;" onclick="navigateToRegister()">Register Here</a>
+            </div>
+          </div>
+
+          <!-- OTP Form (Initially Hidden) -->
+          <div id="otp-verification-container" class="glass-card hidden">
+            <h2 class="title-sm" style="margin-bottom:6px;">Enter OTP Code</h2>
+            <p class="text-muted" style="margin-bottom:16px;">Sent to <span id="otp-target-phone"></span></p>
+            <div class="otp-inputs">
+              <input type="text" maxlength="1" class="otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus()">
+              <input type="text" maxlength="1" class="otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="otp-box" onkeyup="if(this.value.length==0) this.previousElementSibling?.focus()">
+            </div>
+            <button class="btn-primary" id="otp-verify-btn">Verify & Proceed</button>
+            <button class="btn-secondary" style="margin-top:10px;" onclick="document.getElementById('login-form-container').classList.remove('hidden'); document.getElementById('otp-verification-container').classList.add('hidden');">Back</button>
+          </div>
+
+          <!-- Demo Accounts Tip -->
+          <div class="glass-card" style="margin-top: 24px; font-size:0.75rem; background:rgba(30,114,255,0.05); border-color:rgba(30,114,255,0.2);">
+            <strong style="color:var(--secondary); display:block; margin-bottom:4px;"><i class="fas fa-info-circle"></i> Developer/MVP Demo Access Accounts</strong>
+            <ul style="padding-left:14px; color:var(--text-muted); display:flex; flex-direction:column; gap:4px;">
+              <li><strong>Worker Login:</strong> 9876543210 (Ramesh Kumar - Bihar Origin)</li>
+              <li><strong>Employer Login:</strong> 9000112233 (L&T Construction)</li>
+              <li><strong>State Nodal Officer:</strong> 8888888888 (Bihar Nodal Bureau)</li>
+              <li><strong>Admin Console:</strong> 9999999999 (National Registry)</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- SCREEN 2: Registration Panel -->
+        <div id="register-screen" class="app-screen-view hidden">
+          <h2 class="title-md">Create Worker Account</h2>
+          <p class="text-muted" style="margin-bottom:20px;">Provide basic profile parameters to setup your Portable ID Card.</p>
+          
+          <div id="register-form-view">
+            <div class="glass-card">
+              <div class="form-group">
+                <label for="reg-name">Full Name (As in Aadhaar)</label>
+                <input type="text" id="reg-name" class="input-field" placeholder="e.g. Ramesh Kumar">
+              </div>
+              <div class="form-group">
+                <label for="reg-phone">Mobile Number</label>
+                <input type="tel" id="reg-phone" class="input-field" placeholder="10-digit number" maxlength="10">
+              </div>
+              <div class="form-group">
+                <label for="reg-dob">Date of Birth</label>
+                <input type="date" id="reg-dob" class="input-field">
+              </div>
+              <div class="form-group">
+                <label for="reg-gender">Gender</label>
+                <select id="reg-gender" class="input-field">
+                  <option>Male</option>
+                  <option>Female</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reg-homestate">Home State</label>
+                <select id="reg-homestate" class="input-field">
+                  <option>Bihar</option>
+                  <option>Uttar Pradesh</option>
+                  <option>West Bengal</option>
+                  <option>Jharkhand</option>
+                  <option>Odisha</option>
+                  <option>Telangana</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reg-currentstate">Current Working State</label>
+                <select id="reg-currentstate" class="input-field">
+                  <option>Telangana</option>
+                  <option>Karnataka</option>
+                  <option>Andhra Pradesh</option>
+                  <option>Tamil Nadu</option>
+                  <option>Maharashtra</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reg-occupation">Occupation Sector</label>
+                <select id="reg-occupation" class="input-field">
+                  <option>Construction Worker</option>
+                  <option>Agricultural Laborer</option>
+                  <option>Mason (Mistri)</option>
+                  <option>Painter</option>
+                  <option>Domestic Maid / Housekeeper</option>
+                  <option>Factory Assembly Operator</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reg-skill">Skill Category</label>
+                <select id="reg-skill" class="input-field">
+                  <option>Unskilled</option>
+                  <option>Semi-Skilled</option>
+                  <option>Skilled</option>
+                  <option>Highly Skilled</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="reg-emergency">Emergency Contact Mobile</label>
+                <input type="tel" id="reg-emergency" class="input-field" placeholder="10-digit number" maxlength="10">
+              </div>
+            </div>
+            
+            <button class="btn-primary" onclick="handleRegisterSubmit()">Submit & Verify Mobile</button>
+            <button class="btn-secondary" style="margin-top:10px;" onclick="showScreen('auth-screen')">Back to Login</button>
+          </div>
+
+          <!-- Register OTP Verification Panel (Initially Hidden) -->
+          <div id="reg-otp-container" class="glass-card hidden">
+            <h2 class="title-sm" style="margin-bottom:6px;">Confirm Mobile OTP</h2>
+            <p class="text-muted" style="margin-bottom:16px;">Please verify your registration mobile.</p>
+            <div class="otp-inputs">
+              <input type="text" maxlength="1" class="reg-otp-box otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus()">
+              <input type="text" maxlength="1" class="reg-otp-box otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="reg-otp-box otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="reg-otp-box otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="reg-otp-box otp-box" onkeyup="if(this.value.length==1) this.nextElementSibling?.focus(); else if(this.value.length==0) this.previousElementSibling?.focus()">
+              <input type="text" maxlength="1" class="reg-otp-box otp-box" onkeyup="if(this.value.length==0) this.previousElementSibling?.focus()">
+            </div>
+            <button class="btn-primary" onclick="verifyRegisterOTP()">Verify OTP</button>
+            <button class="btn-secondary" style="margin-top:10px;" onclick="document.getElementById('register-form-view').classList.remove('hidden'); document.getElementById('reg-otp-container').classList.add('hidden');">Back</button>
+          </div>
+        </div>
+
+        <!-- SCREEN 3: Aadhaar eKYC Verification Simulation -->
+        <div id="ekyc-screen" class="app-screen-view hidden">
+          <h2 class="title-md">Aadhaar eKYC / Verification</h2>
+          <p class="text-muted" style="margin-bottom:20px;">Link Aadhaar biometric metrics to verify identity & unlock welfare portability.</p>
+          
+          <div class="glass-card">
+            <div class="form-group">
+              <label for="kyc-aadhaar">Enter 12-Digit Aadhaar Card Number</label>
+              <input type="text" id="kyc-aadhaar" class="input-field" placeholder="1234 5678 9012" maxlength="12">
+            </div>
+            
+            <label class="form-group" style="display:block;">
+              <span style="font-size:0.85rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:6px;">Upload ID Proof or Document Photo</span>
+              <div class="file-upload-mock" id="kyc-upload-trigger" onclick="document.getElementById('kyc-file-upload').click()">
+                <i class="fas fa-camera" style="font-size:2rem; color:var(--primary); margin-bottom:8px;"></i>
+                <div style="font-weight:600; font-size:0.9rem;">Take Photo or Upload</div>
+                <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">Capture front of card / ID card</div>
+              </div>
+              <input type="file" id="kyc-file-upload" class="hidden" accept="image/*" onchange="document.getElementById('kyc-upload-trigger').style.borderColor = 'var(--primary)'; document.getElementById('kyc-upload-trigger').innerHTML = '<i class=\'fas fa-file-image\' style=\'font-size:2rem;color:var(--primary);margin-bottom:8px;\'></i><div style=\'font-weight:600;color:var(--primary)\'>Document Loaded</div>';">
+            </label>
+
+            <!-- Scanning Animation -->
+            <div id="kyc-progress-loader" class="text-center hidden" style="margin:20px 0;">
+              <i class="fas fa-circle-notch fa-spin" style="font-size:2.5rem; color:var(--primary); margin-bottom:12px;"></i>
+              <div>Running Secure biometric eKYC match...</div>
+              <div class="text-muted" style="font-size:0.75rem; margin-top:4px;">Verifying signature with UIDAI registry</div>
+            </div>
+
+            <button class="btn-primary" id="kyc-submit-btn" onclick="handleKYCSubmit()">Initiate Digital eKYC</button>
+          </div>
+
+          <button class="btn-secondary" onclick="showScreen('dashboard-screen')">Skip for Now</button>
+        </div>
+
+        <!-- SCREEN 4: Worker Main Dashboard (ID Card front/back) -->
+        <div id="dashboard-screen" class="app-screen-view hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <span class="text-muted">Hello, Welcome</span>
+              <h2 class="title-md" id="dash-welcome-name">Ramesh Kumar</h2>
+            </div>
+            <button class="btn-secondary" style="padding:6px 12px; font-size:0.75rem; border-radius:10px; width:auto;" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+
+          <!-- Flip Card Wrapper -->
+          <div class="id-card-wrapper">
+            <div class="id-card" id="worker-digital-id-card">
+              <!-- FRONT ID CARD -->
+              <div class="id-card-side id-card-front" id="id-card-front-view">
+                <!-- Inner populated dynamically in app.js -->
+              </div>
+              <!-- BACK ID CARD -->
+              <div class="id-card-side id-card-back" id="id-card-back-view">
+                <!-- Inner populated dynamically in app.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Employmentpassbook Widget -->
+          <h3 class="title-sm" style="margin-bottom:10px;"><i class="fas fa-briefcase"></i> Active Employment</h3>
+          <div class="glass-card" id="dash-job-widget">
+            <!-- Populated dynamically -->
+          </div>
+
+          <!-- Quick Actions Menu -->
+          <h3 class="title-sm" style="margin-bottom:10px;"><i class="fas fa-shapes"></i> Essential Services</h3>
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
+            <div class="glass-card text-center" style="cursor:pointer; padding:12px 8px;" onclick="showScreen('health-screen')">
+              <i class="fas fa-hand-holding-medical" style="font-size:1.35rem; color:var(--danger); margin-bottom:6px;"></i>
+              <div style="font-weight:600; font-size:0.75rem;">Health Hub</div>
+            </div>
+            <div class="glass-card text-center" style="cursor:pointer; padding:12px 8px;" onclick="showScreen('health-screen')">
+              <i class="fas fa-wallet" style="font-size:1.35rem; color:var(--secondary); margin-bottom:6px;"></i>
+              <div style="font-weight:600; font-size:0.75rem;">Financial Hub</div>
+            </div>
+            <div class="glass-card text-center" style="cursor:pointer; padding:12px 8px; border-color:rgba(255,193,7,0.3);" onclick="showScreen('grievance-screen')">
+              <i class="fas fa-scale-balanced" style="font-size:1.35rem; color:var(--warning); margin-bottom:6px;"></i>
+              <div style="font-weight:600; font-size:0.75rem;">Grievance Desk</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN 5: Digital Work Passbook Ledger -->
+        <div id="passbook-screen" class="app-screen-view hidden">
+          <h2 class="title-md">Digital Work Passbook</h2>
+          <p class="text-muted" style="margin-bottom:16px;">Verified employer logs details, payments & working ledger.</p>
+
+          <!-- Metrics Panel -->
+          <div class="ledger-stat-grid">
+            <div class="ledger-stat-card">
+              <div class="text-muted" style="font-size:0.75rem;">Total Days Worked</div>
+              <div class="ledger-stat-val" id="passbook-days">0</div>
+            </div>
+            <div class="ledger-stat-card">
+              <div class="text-muted" style="font-size:0.75rem;">Total Earnings</div>
+              <div class="ledger-stat-val" id="passbook-earnings">₹0</div>
+            </div>
+          </div>
+
+          <!-- Passbook Job Logs List -->
+          <h3 class="title-sm" style="margin-bottom:10px;">Employment History</h3>
+          <div class="job-list" id="passbook-job-list">
+            <!-- Populated dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- SCREEN 6: Welfare Schemes Portability -->
+        <div id="welfare-screen" class="app-screen-view hidden">
+          <h2 class="title-md">Welfare Portability</h2>
+          <p class="text-muted" style="margin-bottom:16px;">Select current state to discover matching local and national schemes.</p>
+
+          <!-- State Selection Toggle -->
+          <div class="form-group">
+            <label for="welfare-state-select">Select Working State</label>
+            <select id="welfare-state-select" class="input-field" onchange="renderWelfare()">
+              <option value="Telangana">Telangana</option>
+              <option value="Andhra Pradesh">Andhra Pradesh</option>
+              <option value="Uttar Pradesh">Uttar Pradesh</option>
+              <option value="Tamil Nadu">Tamil Nadu</option>
+              <option value="Karnataka">Karnataka</option>
+            </select>
+          </div>
+
+          <!-- Category filter tabs -->
+          <div class="scheme-category-tabs">
+            <button class="category-tab active" onclick="handleWelfareCategoryClick(this, 'All')">All Categories</button>
+            <button class="category-tab" onclick="handleWelfareCategoryClick(this, 'Food')">🌾 Food & Ration</button>
+            <button class="category-tab" onclick="handleWelfareCategoryClick(this, 'Job')">👷 Jobs & Labor</button>
+            <button class="category-tab" onclick="handleWelfareCategoryClick(this, 'Financial')">💰 Financial Aid</button>
+            <button class="category-tab" onclick="handleWelfareCategoryClick(this, 'Health')">🏥 Medical Care</button>
+            <button class="category-tab" onclick="handleWelfareCategoryClick(this, 'Housing')">🏠 Housing</button>
+          </div>
+
+          <!-- Schemes List -->
+          <div id="welfare-schemes-list">
+            <!-- Populated dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- SCREEN 7: Health & Financial Hub -->
+        <div id="health-screen" class="app-screen-view hidden">
+          <!-- Toggle Section buttons -->
+          <div style="display:flex; gap:10px; margin-bottom:16px;">
+            <button class="btn-primary" style="font-size:0.85rem; padding:8px 12px; border-radius:10px;" id="btn-toggle-health" onclick="document.getElementById('health-section-view').classList.remove('hidden'); document.getElementById('financial-section-view').classList.add('hidden'); this.style.opacity='1'; document.getElementById('btn-toggle-finance').style.opacity='0.6';">Health Hub</button>
+            <button class="btn-primary" style="font-size:0.85rem; padding:8px 12px; border-radius:10px; opacity:0.6;" id="btn-toggle-finance" onclick="document.getElementById('health-section-view').classList.add('hidden'); document.getElementById('financial-section-view').classList.remove('hidden'); this.style.opacity='1'; document.getElementById('btn-toggle-health').style.opacity='0.6';">Financial Hub</button>
+          </div>
+
+          <!-- HEALTH SECTION VIEW -->
+          <div id="health-section-view">
+            <h2 class="title-md">Medical & Health Directory</h2>
+            <p class="text-muted" style="margin-bottom:16px;">Access free network hospitals and set emergency parameters.</p>
+
+            <div class="glass-card">
+              <h3 class="title-sm" style="margin-bottom:12px;">Personal Health Info</h3>
+              <div class="form-group">
+                <label for="health-blood-select">Blood Group</label>
+                <select id="health-blood-select" class="input-field">
+                  <option>O+</option>
+                  <option>A+</option>
+                  <option>B+</option>
+                  <option>AB+</option>
+                  <option>O-</option>
+                  <option>A-</option>
+                  <option>B-</option>
+                  <option>AB-</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="health-emergency-input">Emergency Contact Number</label>
+                <input type="tel" id="health-emergency-input" class="input-field" placeholder="10-digit number" maxlength="10">
+              </div>
+              <button class="btn-primary" style="padding:10px; font-size:0.9rem;" onclick="handleSaveHealthInfo()">Update Health Info</button>
+            </div>
+
+            <div class="glass-card" style="padding:12px;">
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+                <span>Blood Group:</span> <strong id="health-blood-group">O+</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                <span>SOS Contact:</span> <strong id="health-emergency">None</strong>
+              </div>
+            </div>
+
+            <h3 class="title-sm" style="margin-bottom:10px;">Nearby Free Network Hospitals</h3>
+            <div id="hospitals-list">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+
+          <!-- FINANCIAL SECTION VIEW -->
+          <div id="financial-section-view" class="hidden">
+            <h2 class="title-md">Financial & Banking Services</h2>
+            <p class="text-muted" style="margin-bottom:16px;">Verify direct bank links for wage settlement & scheme transfers.</p>
+
+            <div class="glass-card">
+              <h3 class="title-sm" style="margin-bottom:12px;">Link Bank Account</h3>
+              <div class="form-group">
+                <label for="fin-bank-select">Bank Integration Status</label>
+                <select id="fin-bank-select" class="input-field">
+                  <option>Linked</option>
+                  <option>Not Linked</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="fin-upi-input">UPI Payment ID (for instant wage payment)</label>
+                <input type="text" id="fin-upi-input" class="input-field" placeholder="e.g. mobile@upi">
+              </div>
+              <button class="btn-primary" style="padding:10px; font-size:0.9rem;" onclick="handleSaveFinancialInfo()">Save Financial Settings</button>
+            </div>
+
+            <div class="glass-card">
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+                <span>Integration State:</span> <strong id="fin-bank-status">Not Linked</strong>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.85rem;">
+                <span>Registered UPI ID:</span> <strong id="fin-upi-id">None</strong>
+              </div>
+            </div>
+            
+            <div class="glass-card" style="background:rgba(40,167,69,0.05); border-color:rgba(40,167,69,0.2); font-size:0.75rem;">
+              <strong style="color:var(--success); display:block; margin-bottom:4px;"><i class="fas fa-shield-alt"></i> DBT Direct Benefit Transfer Mode</strong>
+              <p class="text-muted">Aadhaar verified bank accounts automatically qualify for direct deposits from central or state welfare ministries.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- SCREEN 8: Notifications Hub -->
+        <div id="notif-screen" class="app-screen-view hidden">
+          <h2 class="title-md">Notification Hub</h2>
+          <p class="text-muted" style="margin-bottom:16px;">Alerts for new welfare options, wage credits, and KYC verification statuses.</p>
+          
+          <div id="notifications-list">
+            <!-- Populated dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- SCREEN 9: Employer Console -->
+        <div id="employer-screen" class="app-screen-view hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <span class="text-muted">Employer Portal</span>
+              <h2 class="title-md" id="emp-company-name">L&T Project Panel</h2>
+              <span style="font-size:0.75rem; color:var(--text-muted);" id="emp-location-name">Gachibowli, Hyderabad</span>
+            </div>
+            <button class="btn-secondary" style="padding:6px 12px; font-size:0.75rem; border-radius:10px; width:auto;" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+
+          <div class="glass-card">
+            <h3 class="title-sm" style="margin-bottom:12px;">Log Employment Record</h3>
+            
+            <div class="form-group">
+              <label for="emp-worker-phone">Search Worker Phone / ID</label>
+              <input type="text" id="emp-worker-phone" class="input-field" placeholder="e.g. 9876543210 or W-9823-87">
+            </div>
+            <div class="form-group">
+              <label for="emp-job-title">Job Title (Role)</label>
+              <input type="text" id="emp-job-title" class="input-field" placeholder="e.g. Mason, Welder, Electrician">
+            </div>
+            <div class="form-group">
+              <label for="emp-job-wage">Daily Wage Rate (₹)</label>
+              <input type="number" id="emp-job-wage" class="input-field" placeholder="e.g. 600">
+            </div>
+            <div class="form-group">
+              <label for="emp-job-join">Joining Date</label>
+              <input type="date" id="emp-job-join" class="input-field">
+            </div>
+            <div class="form-group">
+              <label for="emp-job-exit">Exit Date (Leave blank if ongoing)</label>
+              <input type="date" id="emp-job-exit" class="input-field">
+            </div>
+            <div class="form-group">
+              <label for="emp-pay-status">Payment Settlement Status</label>
+              <select id="emp-pay-status" class="input-field">
+                <option>Paid</option>
+                <option>Pending</option>
+              </select>
+            </div>
+            
+            <button class="btn-primary" onclick="handleEmployerLogJob()">Log Work & Send Receipt</button>
+          </div>
+        </div>
+
+        <!-- SCREEN 10: Admin Monitoring Console -->
+        <div id="admin-screen" class="app-screen-view hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+            <div>
+              <span class="text-muted">Government Admin Portal</span>
+              <h2 class="title-md">National Registry Hub</h2>
+            </div>
+            <button class="btn-secondary" style="padding:6px 12px; font-size:0.75rem; border-radius:10px; width:auto;" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+
+          <!-- Metric Cards Grid -->
+          <div class="admin-metrics">
+            <div class="metric-widget">
+              <div class="text-muted" style="font-size:0.7rem;">Workers</div>
+              <div class="metric-num" id="adm-stat-workers">0</div>
+            </div>
+            <div class="metric-widget">
+              <div class="text-muted" style="font-size:0.7rem;">Employers</div>
+              <div class="metric-num" id="adm-stat-employers">0</div>
+            </div>
+            <div class="metric-widget">
+              <div class="text-muted" style="font-size:0.7rem;">Jobs Mapped</div>
+              <div class="metric-num" id="adm-stat-jobs">0</div>
+            </div>
+            <div class="metric-widget">
+              <div class="text-muted" style="font-size:0.7rem;">Schemes Active</div>
+              <div class="metric-num" id="adm-stat-schemes">0</div>
+            </div>
+          </div>
+
+          <!-- Charts -->
+          <div class="glass-card">
+            <h3 class="title-sm" style="margin-bottom:8px;">Demographic Insights</h3>
+            <div class="chart-container">
+              <canvas id="admin-analytics-chart"></canvas>
+            </div>
+          </div>
+
+          <!-- Action Panels -->
+          <h3 class="title-sm" style="margin-bottom:10px;">Pending Worker Approvals</h3>
+          <div id="admin-pending-list">
+            <!-- Loaded dynamically -->
+          </div>
+
+          <div class="glass-card" style="margin-top: 16px;">
+            <h3 class="title-sm" style="margin-bottom:12px;">Add Welfare Scheme</h3>
+            <div class="form-group">
+              <label for="adm-scheme-state">State Authority</label>
+              <select id="adm-scheme-state" class="input-field">
+                <option>Telangana</option>
+                <option>Andhra Pradesh</option>
+                <option>Uttar Pradesh</option>
+                <option>Tamil Nadu</option>
+                <option>Karnataka</option>
+                <option>Central</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="adm-scheme-name">Scheme Name</label>
+              <input type="text" id="adm-scheme-name" class="input-field" placeholder="e.g. Free Ration Card">
+            </div>
+            <div class="form-group">
+              <label for="adm-scheme-cat">Category</label>
+              <select id="adm-scheme-cat" class="input-field">
+                <option>Food</option>
+                <option>Job</option>
+                <option>Financial</option>
+                <option>Health</option>
+                <option>Housing</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="adm-scheme-elig">Eligibility Description</label>
+              <input type="text" id="adm-scheme-elig" class="input-field" placeholder="e.g. Household earnings < ₹1.5 Lakhs per year">
+            </div>
+            <div class="form-group">
+              <label for="adm-scheme-docs">Required Verification Docs</label>
+              <input type="text" id="adm-scheme-docs" class="input-field" placeholder="e.g. Aadhaar Card, Income Certificate">
+            </div>
+            <div class="form-group">
+              <label for="adm-scheme-desc">Full Scheme Description</label>
+              <textarea id="adm-scheme-desc" class="input-field" rows="3" placeholder="Brief outline of scheme benefits..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="handleAdminAddScheme()">Add Scheme to Registry</button>
+          </div>
+        </div>
+
+        <!-- SCREEN 11: Worker Grievance Redressal Desk -->
+        <div id="grievance-screen" class="app-screen-view hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div>
+              <span class="text-muted">Grievance & Legal Support</span>
+              <h2 class="title-md">Nodal Grievance Desk</h2>
+            </div>
+            <button class="btn-secondary" style="padding:6px 12px; font-size:0.75rem; border-radius:10px; width:auto;" onclick="showScreen('dashboard-screen')"><i class="fas fa-arrow-left"></i> Back</button>
+          </div>
+          <p class="text-muted" style="margin-bottom:16px;">Complaints are directly forwarded to your Home State Labor Commissioner & Nodal Cell for binding intervention.</p>
+
+          <div class="glass-card">
+            <h3 class="title-sm" style="margin-bottom:12px;"><i class="fas fa-file-circle-plus"></i> File New Grievance</h3>
+            <div class="form-group">
+              <label for="grv-category">Complaint Category</label>
+              <select id="grv-category" class="input-field">
+                <option>Wage Non-Payment / Delayed Payment</option>
+                <option>Welfare Scheme Access Denial</option>
+                <option>Workplace Safety / Harassment</option>
+                <option>Employer Breach of Agreed Wage</option>
+                <option>Emergency Eviction / Shelter Dispute</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="grv-employer">Employer / Contractor Name</label>
+              <input type="text" id="grv-employer" class="input-field" placeholder="e.g. L&T Project / Contractor Name">
+            </div>
+            <div class="form-group">
+              <label for="grv-amount">Unpaid Amount Involved (₹, if applicable)</label>
+              <input type="number" id="grv-amount" class="input-field" placeholder="e.g. 14000">
+            </div>
+            <div class="form-group">
+              <label for="grv-desc">Description of Issue</label>
+              <textarea id="grv-desc" class="input-field" rows="3" placeholder="Provide details of working site, supervisor name, dates, and issue..."></textarea>
+            </div>
+            <button class="btn-primary" onclick="handleWorkerSubmitGrievance()">
+              <i class="fas fa-paper-plane"></i> Submit Grievance to Home State Nodal Cell
+            </button>
+          </div>
+
+          <h3 class="title-sm" style="margin-bottom:10px; margin-top:20px;"><i class="fas fa-list-check"></i> My Filed Complaints</h3>
+          <div id="worker-grievance-list">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- SCREEN 12: State Nodal Level Officer Dashboard -->
+        <div id="nodal-screen" class="app-screen-view hidden">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px;">
+            <div>
+              <div class="state-insignia-badge" id="nodal-state-insignia">
+                <i class="fas fa-shield-halved"></i> GOVT. OF BIHAR • LABOUR DEPT
+              </div>
+              <h2 class="title-md" id="nodal-officer-name" style="margin-top:4px;">Shri Alok Ranjan (IAS)</h2>
+              <span style="font-size:0.75rem; color:var(--text-muted);" id="nodal-officer-dept">State Migrant Labor Nodal Officer</span>
+            </div>
+            <button class="btn-secondary" style="padding:6px 12px; font-size:0.75rem; border-radius:10px; width:auto;" onclick="handleLogout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
+
+          <!-- Migration Inflow / Outflow Overview -->
+          <div class="migration-flow-grid">
+            <div class="flow-card">
+              <div class="text-muted" style="font-size:0.7rem;">Native Citizens Abroad</div>
+              <div class="flow-card-num flow-out" id="nodal-stat-outflow">0</div>
+              <span style="font-size:0.65rem; color:var(--text-muted);">Registered in SetuConnect</span>
+            </div>
+            <div class="flow-card">
+              <div class="text-muted" style="font-size:0.7rem;">In-State Migrants</div>
+              <div class="flow-card-num flow-in" id="nodal-stat-inflow">0</div>
+              <span style="font-size:0.65rem; color:var(--text-muted);">Hosting from other states</span>
+            </div>
+            <div class="flow-card">
+              <div class="text-muted" style="font-size:0.7rem;">Open Grievances</div>
+              <div class="flow-card-num flow-dispute" id="nodal-stat-disputes">0</div>
+              <span style="font-size:0.65rem; color:var(--text-muted);">Pending Redressal</span>
+            </div>
+            <div class="flow-card">
+              <div class="text-muted" style="font-size:0.7rem;">Disputes Resolved</div>
+              <div class="flow-card-num flow-resolved" id="nodal-stat-resolved">0</div>
+              <span style="font-size:0.65rem; color:var(--text-muted);">Wages / Rights Restored</span>
+            </div>
+          </div>
+
+          <!-- Action: Generate Official State Report -->
+          <button class="btn-primary" style="margin-bottom:18px; font-size:0.9rem;" onclick="nodalOpenReportModal()">
+            <i class="fas fa-file-invoice"></i> Generate State Migration & Audit Report
+          </button>
+
+          <!-- Grievance Redressal Desk Panel -->
+          <h3 class="title-sm" style="margin-bottom:10px;"><i class="fas fa-scale-balanced"></i> Grievance Redressal Desk</h3>
+          <div class="scheme-category-tabs" style="margin-bottom:10px;">
+            <button class="category-tab active" id="nodal-tab-all" onclick="filterNodalGrievances('All', this)">All</button>
+            <button class="category-tab" id="nodal-tab-pending" onclick="filterNodalGrievances('Pending', this)">Pending</button>
+            <button class="category-tab" id="nodal-tab-investigation" onclick="filterNodalGrievances('Under Investigation', this)">Investigating</button>
+            <button class="category-tab" id="nodal-tab-resolved" onclick="filterNodalGrievances('Resolved', this)">Resolved</button>
+          </div>
+          <div id="nodal-grievances-list">
+            <!-- Loaded dynamically in app.js -->
+          </div>
+
+          <!-- Inter-State Verification Requests -->
+          <h3 class="title-sm" style="margin-bottom:10px; margin-top:20px;"><i class="fas fa-handshake"></i> Inter-State Verification Requests</h3>
+          <div id="nodal-requests-list">
+            <!-- Loaded dynamically in app.js -->
+          </div>
+        </div>
+
+        <!-- State Audit Report Modal (Initially Hidden) -->
+        <div id="report-modal" class="modal-overlay hidden">
+          <div class="modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:10px; margin-bottom:14px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="logo-icon-emblem small-emblem"></span>
+                <h3 class="title-sm" style="margin:0;">State Nodal Audit Report</h3>
+              </div>
+              <button class="header-btn" style="width:30px; height:30px;" onclick="document.getElementById('report-modal').classList.add('hidden')"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="report-modal-body">
+              <!-- Populated dynamically -->
+            </div>
+            <div style="margin-top:16px; display:flex; gap:10px;">
+              <button class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Print / Export Report</button>
+              <button class="btn-secondary" onclick="document.getElementById('report-modal').classList.add('hidden')">Close</button>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- Multilingual Voice Assistant Overlay (Pops up when active) -->
+      <div id="voice-assistant-overlay" class="voice-overlay">
+        <h3 class="title-md" style="margin-bottom:4px;">Setu Voice AI</h3>
+        <p class="voice-status-text" id="voice-status">Listening... Speak now</p>
+        
+        <!-- Speech Waves -->
+        <div class="voice-wave">
+          <div class="voice-bar"></div>
+          <div class="voice-bar"></div>
+          <div class="voice-bar"></div>
+          <div class="voice-bar"></div>
+          <div class="voice-bar"></div>
+        </div>
+
+        <p class="transcript-text" id="voice-transcript">...</p>
+        
+        <button class="btn-secondary" style="border-radius:50%; width:64px; height:64px; font-size:1.35rem;" onclick="closeVoiceAssistant()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Floating Mic Button Trigger -->
+      <button class="voice-assistant-trigger" id="voice-mic-icon" onclick="toggleVoiceAssistant()">
+        <i class="fas fa-microphone"></i>
+      </button>
+
+      <!-- Bottom Tab Navigation Bar (For Workers) -->
+      <nav class="app-navbar">
+        <a class="nav-item active" data-screen="dashboard-screen" onclick="showScreen('dashboard-screen')">
+          <i class="fas fa-id-card"></i>
+          <span>My Profile</span>
+        </a>
+        <a class="nav-item" data-screen="passbook-screen" onclick="showScreen('passbook-screen')">
+          <i class="fas fa-book-open"></i>
+          <span>Passbook</span>
+        </a>
+        <div style="width: 58px; height: 100%;"></div> <!-- Space placeholder for center floating mic -->
+        <a class="nav-item" data-screen="welfare-screen" onclick="showScreen('welfare-screen')">
+          <i class="fas fa-gift"></i>
+          <span>Welfare</span>
+        </a>
+        <a class="nav-item" data-screen="health-screen" onclick="showScreen('health-screen')">
+          <i class="fas fa-house-medical"></i>
+          <span>Referrals</span>
+        </a>
+      </nav>
+
+    </div>
+  </div>
+
+  <!-- Database Seed and Main Controller Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

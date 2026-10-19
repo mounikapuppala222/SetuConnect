@@ -1,12 +1,17 @@
 // SetuConnect Core Application Logic
 
-// Global Application State
+// // Global Application State
 let db = {
   workers: [],
   employers: [],
   employments: [],
   notifications: [],
-  schemes: []
+  schemes: [],
+  nodalOfficers: [],
+  grievances: [],
+  stateRequests: [],
+  jobs: [],
+  applications: []
 };
 
 let currentUser = null; // Currently logged in user object
@@ -26,6 +31,8 @@ const TRANSLATIONS = {
     noSpeechSupport: "Speech recognition is not supported in this browser.",
     navigatingSchemes: "Showing available welfare schemes.",
     navigatingJobs: "Opening your work passbook.",
+    navigatingJobSearch: "Opening verified job search matching your passbook.",
+    navigatingGrievance: "Opening your grievance redressal desk.",
     navigatingHealth: "Showing nearby health services.",
     navigatingProfile: "Opening your digital ID card.",
     navigatingNotif: "Showing your notifications.",
@@ -39,6 +46,8 @@ const TRANSLATIONS = {
     noSpeechSupport: "इस ब्राउज़र में स्पीच रिकग्निशन समर्थित नहीं है।",
     navigatingSchemes: "उपलब्ध कल्याणकारी योजनाएं दिखा रहा हूँ।",
     navigatingJobs: "आपका काम पासबुक खोल रहा हूँ।",
+    navigatingJobSearch: "आपके पासबुक से मेल खाने वाली नौकरियां खोल रहा हूँ।",
+    navigatingGrievance: "शिकायत निवारण डेस्क खोल रहा हूँ।",
     navigatingHealth: "आस-पास की स्वास्थ्य सेवाएं दिखा रहा हूँ।",
     navigatingProfile: "आपका डिजिटल पहचान पत्र खोल रहा हूँ।",
     navigatingNotif: "आपकी सूचनाएं दिखा रहा हूँ।",
@@ -52,6 +61,8 @@ const TRANSLATIONS = {
     noSpeechSupport: "ఈ బ్రౌజర్‌లో స్పీచ్ రికగ్నిషన్ సపోర్ట్ లేదు.",
     navigatingSchemes: "అందుబాటులో ఉన్న సంక్షేమ పథకాలను చూపిస్తున్నాను.",
     navigatingJobs: "మీ పని పాస్‌బుక్‌ను ఓపెన్ చేస్తున్నాను.",
+    navigatingJobSearch: "పాస్‌బుక్ ఆధారంగా ఉద్యోగాల శోధనను తెరుస్తున్నాను.",
+    navigatingGrievance: "ఫిర్యాదు పరిష్కార విభాగాన్ని తెరుస్తున్నాను.",
     navigatingHealth: "దగ్గరలోని ఆరోగ్య సేవలను చూపిస్తున్నాను.",
     navigatingProfile: "మీ డిజిటల్ ఐడి కార్డ్‌ను ఓపెన్ చేస్తున్నాను.",
     navigatingNotif: "మీ నోటిఫికేషన్‌లను చూపిస్తున్నాను.",
@@ -65,6 +76,8 @@ const TRANSLATIONS = {
     noSpeechSupport: "இந்த உலாவியில் பேச்சு அங்கீகாரம் ஆதரிக்கப்படவில்லை.",
     navigatingSchemes: "கிடைக்கக்கூடிய நலத்திட்டங்களை காட்டுகிறது.",
     navigatingJobs: "உங்கள் பணி பாஸ்புக்கை திறக்கிறது.",
+    navigatingJobSearch: "பாஸ்புக் அடிப்படையிலான வேலை தேடலைத் திறக்கிறது.",
+    navigatingGrievance: "குறைதீர்க்கும் பக்கத்தைத் திறக்கிறது.",
     navigatingHealth: "அருகிலுள்ள சுகாதார சேவைகளைக் காட்டுகிறது.",
     navigatingProfile: "உங்கள் டிஜிட்டல் அடையாள அட்டையைத் திறக்கிறது.",
     navigatingNotif: "உங்கள் அறிவிப்புகளைக் காட்டுகிறது.",
@@ -78,6 +91,8 @@ const TRANSLATIONS = {
     noSpeechSupport: "ಈ ಬ್ರೌಸರ್‌ನಲ್ಲಿ ಧ್ವನಿ ಗುರುತಿಸುವಿಕೆ ಬೆಂಬಲಿತವಾಗಿಲ್ಲ.",
     navigatingSchemes: "ಲಭ್ಯವಿರುವ ಕಲ್ಯಾಣ ಯೋಜನೆಗಳನ್ನು ತೋರಿಸಲಾಗುತ್ತಿದೆ.",
     navigatingJobs: "ನಿಮ್ಮ ಕೆಲಸದ ಪಾಸ್‌ಬುಕ್ ತೆರೆಯಲಾಗುತ್ತಿದೆ.",
+    navigatingJobSearch: "ಪಾಸ್‌ಬುಕ್ ಆಧಾರಿತ ಉದ್ಯೋಗ ಹುಡುಕಾಟವನ್ನು ತೆರೆಯಲಾಗುತ್ತಿದೆ.",
+    navigatingGrievance: "ದೂರು ಪರಿಹಾರ ವಿಭಾಗವನ್ನು ತೆರೆಯಲಾಗುತ್ತಿದೆ.",
     navigatingHealth: "ಹತ್ತಿರದ ಆರೋಗ್ಯ ಸೇವೆಗಳನ್ನು ತೋರಿಸಲಾಗುತ್ತಿದೆ.",
     navigatingProfile: "ನಿಮ್ಮ ಡಿಜಿಟಲ್ ಐಡಿ ಕಾರ್ಡ್ ತೆರೆಯಲಾಗುತ್ತಿದೆ.",
     navigatingNotif: "ನಿಮ್ಮ ಅಧಿಸೂಚನೆಗಳನ್ನು ತೋರಿಸಲಾಗುತ್ತಿದೆ.",
@@ -114,6 +129,8 @@ function initDatabase() {
   db.nodalOfficers = getStored('setu_nodal_officers', typeof DEFAULT_NODAL_OFFICERS !== 'undefined' ? DEFAULT_NODAL_OFFICERS : []);
   db.grievances = getStored('setu_grievances', typeof DEFAULT_GRIEVANCES !== 'undefined' ? DEFAULT_GRIEVANCES : []);
   db.stateRequests = getStored('setu_state_requests', typeof DEFAULT_STATE_REQUESTS !== 'undefined' ? DEFAULT_STATE_REQUESTS : []);
+  db.jobs = getStored('setu_jobs', typeof INITIAL_JOBS !== 'undefined' ? INITIAL_JOBS : []);
+  db.applications = getStored('setu_applications', typeof DEFAULT_APPLICATIONS !== 'undefined' ? DEFAULT_APPLICATIONS : []);
 
   // Ensure all workers have state-prefixed IDs (BR-MW-..., UP-MW-...)
   let migrated = false;
@@ -212,7 +229,10 @@ function showScreen(screenId) {
   } else if (screenId === 'nodal-screen') {
     renderNodalDashboard();
   } else if (screenId === 'grievance-screen') {
+    populatePassbookJobsForGrievance();
     renderWorkerGrievances();
+  } else if (screenId === 'jobsearch-screen') {
+    renderJobSearch();
   }
 }
 
@@ -238,7 +258,7 @@ function showToast(message, type = 'success') {
     toast.style.opacity = '0';
     toast.style.transform = 'translateY(-10px)';
     toast.style.transition = 'all 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
+    setTimeout(() => { if (toast && typeof toast.remove === 'function') toast.remove(); }, 300);
   }, 4000);
 }
 
@@ -921,10 +941,20 @@ function processVoiceCommand(command) {
   closeVoiceAssistant();
   
   // Clean command text
-  const text = command.trim();
+  const text = command.trim().toLowerCase();
   
-  // English Commands
-  if (text.includes("scheme") || text.includes("welfare") || text.includes("yojana") || text.includes("పథకాలు") || text.includes("திட்டங்கள்") || text.includes("ಯೋಜನೆ")) {
+  // Grievance commands (priority check)
+  if (text.includes("grievance") || text.includes("complaint") || text.includes("dispute") || text.includes("unpaid") || text.includes("legal") || text.includes("शिकायत") || text.includes("ఫిర్యాదు") || text.includes("புகார்") || text.includes("ದೂರು")) {
+    speakWelcomeText(TRANSLATIONS[selectedLanguage].navigatingGrievance);
+    showScreen('grievance-screen');
+  }
+  // Job search commands (priority check before general job/passbook)
+  else if (text.includes("search job") || text.includes("find job") || text.includes("job search") || text.includes("vacancy") || text.includes("opening") || text.includes("नौकरी") || text.includes("ఉద్యోగం") || text.includes("வேலை தேடல்") || text.includes("ಉದ್ಯೋಗ ಹುಡುಕಾಟ")) {
+    speakWelcomeText(TRANSLATIONS[selectedLanguage].navigatingJobSearch);
+    showScreen('jobsearch-screen');
+  }
+  // English / Multilingual Commands for Schemes
+  else if (text.includes("scheme") || text.includes("welfare") || text.includes("yojana") || text.includes("పథకాలు") || text.includes("திட்டங்கள்") || text.includes("ಯೋಜನೆ")) {
     speakWelcomeText(TRANSLATIONS[selectedLanguage].navigatingSchemes);
     showScreen('welfare-screen');
   } 
@@ -967,11 +997,85 @@ function handleLanguageChange(lang) {
   speakWelcomeText(TRANSLATIONS[lang].welcome);
 }
 
-// --- EMPLOYER CONSOLE: Log jobs for worker ---
+// --- EMPLOYER CONSOLE: Log jobs & manage passbook applicants ---
 function renderEmployerDashboard() {
   if (!currentUser) return;
   document.getElementById('emp-company-name').innerText = currentUser.companyName;
   document.getElementById('emp-location-name').innerText = currentUser.location;
+  renderEmployerApplications();
+}
+
+function renderEmployerApplications() {
+  const container = document.getElementById('employer-applications-list');
+  const countPill = document.getElementById('emp-app-count-pill');
+  if (!container) return;
+  container.innerHTML = "";
+
+  const empApps = db.applications;
+  if (countPill) countPill.innerText = `${empApps.length} Applicants`;
+
+  if (empApps.length === 0) {
+    container.innerHTML = `<div class="text-center text-muted" style="padding:16px 0; font-size:0.8rem;">No passbook applications received yet.</div>`;
+    return;
+  }
+
+  empApps.forEach(app => {
+    const card = document.createElement('div');
+    card.className = 'job-card';
+    card.style.marginBottom = '10px';
+    
+    let badgeClass = 'badge-pending';
+    if (app.status === 'Passbook Verified') badgeClass = 'badge-investigation';
+    if (app.status === 'Offer Letter Issued') badgeClass = 'badge-action';
+    if (app.status === 'Accepted & Joined') badgeClass = 'badge-resolved';
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+        <span class="badge-grievance ${badgeClass}">${app.status}</span>
+        <span style="font-size:0.7rem; color:var(--text-muted);">${app.id}</span>
+      </div>
+      <h4 class="title-sm" style="margin-bottom:2px;">${app.workerName}</h4>
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">
+        Phone: <strong>${app.workerPhone}</strong> | Applied for: <strong style="color:var(--text-main);">${app.jobTitle}</strong>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-size:0.75rem; margin-bottom:8px;">
+        <i class="fas fa-certificate" style="color:var(--primary);"></i> Verified Work Experience: <strong style="color:var(--primary);">${app.passbookDaysVerified} Passbook Days</strong> | Wage: <strong>₹${app.dailyWage}/day</strong>
+      </div>
+      ${(app.status === 'Applied' || app.status === 'Passbook Verified') ? `
+        <button class="btn-primary" style="padding:6px 12px; font-size:0.75rem; border-radius:8px; width:auto;" onclick="handleEmployerIssueOffer('${app.id}')">
+          <i class="fas fa-file-signature"></i> Approve & Issue Instant Offer Letter
+        </button>
+      ` : app.status === 'Offer Letter Issued' ? `
+        <span style="font-size:0.75rem; color:var(--info); font-weight:600;"><i class="fas fa-paper-plane"></i> Offer Letter Issued (Awaiting Worker Acceptance)</span>
+      ` : `
+        <span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fas fa-circle-check"></i> Worker Accepted Offer & Joined (Passbook Updated)</span>
+      `}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function handleEmployerIssueOffer(appId) {
+  const app = db.applications.find(a => a.id === appId);
+  if (!app) return;
+
+  app.status = 'Offer Letter Issued';
+  app.offerMessage = `Congratulations! Employer '${currentUser?.companyName || app.companyName}' has verified your ${app.passbookDaysVerified} passbook days and approved your hiring at ₹${app.dailyWage}/day. Tap to accept and join!`;
+  saveDB('setu_applications', db.applications);
+
+  // Send worker notification
+  const notif = {
+    id: `notif-${Date.now()}`,
+    workerId: app.workerId,
+    message: `Offer Letter received for '${app.jobTitle}' at ₹${app.dailyWage}/day! Employer approved your ${app.passbookDaysVerified} verified passbook days. Open Job Search to accept.`,
+    status: "unread",
+    date: new Date().toISOString()
+  };
+  db.notifications.unshift(notif);
+  saveDB('setu_notifications', db.notifications);
+
+  showToast("Offer letter issued! Worker notified.", "success");
+  renderEmployerApplications();
 }
 
 function handleEmployerLogJob() {
@@ -1178,17 +1282,64 @@ function drawAdminAnalytics() {
   }
 }
 
-// --- GRIEVANCE REDRESSAL DESK: WORKER ---
+// --- GRIEVANCE REDRESSAL DESK: PASSBOOK LINKING & WORKER SOLVE FLOW ---
+function populatePassbookJobsForGrievance() {
+  const select = document.getElementById('grv-passbook-job');
+  if (!select || !currentUser) return;
+
+  const userJobs = db.employments.filter(e => e.workerId === currentUser.id);
+  select.innerHTML = '<option value="">-- Choose Employer from Passbook (Auto-Fills) --</option>';
+
+  userJobs.forEach(job => {
+    const opt = document.createElement('option');
+    opt.value = job.id;
+    opt.innerText = `${job.companyName} (${job.jobTitle}) - ₹${job.dailyWage}/day [${job.paymentStatus}]`;
+    select.appendChild(opt);
+  });
+}
+
+function handleSelectPassbookJobForGrievance(jobId) {
+  if (!jobId) {
+    document.getElementById('grv-employer').value = "";
+    document.getElementById('grv-days').value = "";
+    document.getElementById('grv-amount').value = "";
+    return;
+  }
+
+  const job = db.employments.find(e => e.id === jobId);
+  if (!job) return;
+
+  document.getElementById('grv-employer').value = job.companyName;
+
+  // Calculate days worked
+  const start = new Date(job.joiningDate);
+  const end = job.exitDate ? new Date(job.exitDate) : new Date();
+  const diffTime = Math.abs(end - start);
+  const diffDays = Math.max(1, Math.min(60, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
+
+  document.getElementById('grv-days').value = diffDays;
+  document.getElementById('grv-amount').value = diffDays * job.dailyWage;
+  document.getElementById('grv-category').value = "Wage Non-Payment / Delayed Settlement";
+  document.getElementById('grv-desc').value = `Unpaid wages for ${diffDays} verified working days as ${job.jobTitle} with ${job.companyName} at ${job.location}. Payment status in passbook is currently '${job.paymentStatus}'. Requesting inter-state wage recovery.`;
+
+  showToast("Passbook job linked! Unpaid days & amount auto-calculated.", "info");
+}
+
 function handleWorkerSubmitGrievance() {
   const category = document.getElementById('grv-category').value;
   const employer = document.getElementById('grv-employer').value.trim();
+  const days = parseInt(document.getElementById('grv-days').value) || 0;
   const amount = parseFloat(document.getElementById('grv-amount').value) || 0;
+  const jurisdiction = document.getElementById('grv-nodal-jurisdiction')?.value || 'both';
   const desc = document.getElementById('grv-desc').value.trim();
+  const linkedJobId = document.getElementById('grv-passbook-job')?.value || null;
 
   if (!employer || !desc) {
     showToast("Please provide employer name and issue description.", "error");
     return;
   }
+
+  const assignedState = jurisdiction === 'host' ? currentUser.currentState : currentUser.homeState;
 
   const newGrievance = {
     id: `GRV-2026-${Math.floor(100 + Math.random() * 900)}`,
@@ -1199,14 +1350,27 @@ function handleWorkerSubmitGrievance() {
     currentState: currentUser.currentState,
     category,
     employerName: employer,
+    linkedJobId: linkedJobId || null,
+    disputedDays: days,
     disputedAmount: amount,
+    jurisdiction,
     description: desc,
     status: "Pending Investigation",
     priority: amount > 10000 ? "High" : "Medium",
     filedDate: new Date().toISOString(),
     updatedDate: new Date().toISOString(),
-    assignedOfficerState: currentUser.homeState,
-    officerRemarks: `Grievance registered and forwarded to ${currentUser.homeState} State Nodal Labor Desk.`
+    assignedOfficerState: assignedState,
+    officerRemarks: `Grievance registered and forwarded to Govt. of ${assignedState} Nodal Labor Desk. Inter-state inquiry initiated.`,
+    settlementAmount: amount,
+    settlementOffered: false,
+    settlementNote: "",
+    resolutionTimeline: [
+      { step: "Filed", date: new Date().toISOString().split('T')[0], detail: `Registered via Digital Passbook. Forwarded to ${assignedState} Nodal Cell.` },
+      { step: "Under Investigation", date: "Pending", detail: "Labor inspector assigned to verify site muster roll and employer payroll." },
+      { step: "Action Taken", date: "Pending", detail: "Formal summons or recovery order issued to employer." },
+      { step: "Settlement Disbursed", date: "Pending", detail: "Settlement amount held in Escrow ready for direct DBT release." },
+      { step: "Resolved", date: "Pending", detail: "Dispute closed upon worker's final confirmation." }
+    ]
   };
 
   db.grievances.unshift(newGrievance);
@@ -1216,17 +1380,26 @@ function handleWorkerSubmitGrievance() {
   const notif = {
     id: `notif-${Date.now()}`,
     workerId: currentUser.id,
-    message: `Grievance #${newGrievance.id} submitted to Govt. of ${currentUser.homeState} Nodal Desk.`,
+    message: `Grievance #${newGrievance.id} submitted! Home State (${currentUser.homeState}) Nodal Officer notified for inter-state recovery.`,
     status: "unread",
     date: new Date().toISOString()
   };
   db.notifications.unshift(notif);
   saveDB('setu_notifications', db.notifications);
 
-  showToast("Grievance logged! Nodal Officer notified.", "success");
+  showToast("Grievance registered with Nodal Labor Desk!", "success");
+
+  // Reset form
+  document.getElementById('grv-passbook-job').value = "";
   document.getElementById('grv-employer').value = "";
+  document.getElementById('grv-days').value = "";
   document.getElementById('grv-amount').value = "";
   document.getElementById('grv-desc').value = "";
+  const uploadStatus = document.getElementById('grv-upload-status');
+  if (uploadStatus) uploadStatus.innerText = "Tap to upload photo of muster roll / site ID";
+  const uploadBox = document.getElementById('grv-upload-box');
+  if (uploadBox) uploadBox.style.borderColor = "";
+
   renderWorkerGrievances();
 }
 
@@ -1247,24 +1420,544 @@ function renderWorkerGrievances() {
     card.className = 'grievance-card';
     let statusClass = 'badge-pending';
     if (g.status === 'Under Investigation') statusClass = 'badge-investigation';
-    if (g.status === 'Action Taken') statusClass = 'badge-action';
+    if (g.status === 'Action Taken' || g.status === 'Notice Issued') statusClass = 'badge-action';
+    if (g.status === 'Settlement Disbursed') statusClass = 'badge-investigation';
     if (g.status === 'Resolved') statusClass = 'badge-resolved';
+
+    // 5-Step Stepper state
+    const isStep1Done = true;
+    const isStep2Done = ['Under Investigation', 'Notice Issued', 'Action Taken', 'Settlement Disbursed', 'Resolved'].includes(g.status);
+    const isStep3Done = ['Notice Issued', 'Action Taken', 'Settlement Disbursed', 'Resolved'].includes(g.status);
+    const isStep4Done = ['Settlement Disbursed', 'Resolved'].includes(g.status);
+    const isStep5Done = g.status === 'Resolved';
+
+    const isStep1Active = g.status === 'Pending Investigation';
+    const isStep2Active = g.status === 'Under Investigation';
+    const isStep3Active = g.status === 'Notice Issued' || g.status === 'Action Taken';
+    const isStep4Active = g.status === 'Settlement Disbursed';
+
+    const stepperHTML = `
+      <div class="grievance-stepper">
+        <div class="stepper-step ${isStep1Done ? 'done' : ''} ${isStep1Active ? 'active' : ''}">
+          <div class="stepper-node">${isStep1Done ? '<i class="fas fa-check"></i>' : '1'}</div>
+          <span class="stepper-label">1. Filed</span>
+        </div>
+        <div class="stepper-step ${isStep2Done ? 'done' : ''} ${isStep2Active ? 'active' : ''}">
+          <div class="stepper-node">${isStep2Done && !isStep2Active ? '<i class="fas fa-check"></i>' : '2'}</div>
+          <span class="stepper-label">2. Inquiry</span>
+        </div>
+        <div class="stepper-step ${isStep3Done ? 'done' : ''} ${isStep3Active ? 'active' : ''}">
+          <div class="stepper-node">${isStep3Done && !isStep3Active ? '<i class="fas fa-check"></i>' : '3'}</div>
+          <span class="stepper-label">3. Notice</span>
+        </div>
+        <div class="stepper-step ${isStep4Done ? 'done' : ''} ${isStep4Active ? 'active' : ''}">
+          <div class="stepper-node">${isStep4Done && !isStep4Active ? '<i class="fas fa-check"></i>' : '4'}</div>
+          <span class="stepper-label">4. Escrow</span>
+        </div>
+        <div class="stepper-step ${isStep5Done ? 'done' : ''}">
+          <div class="stepper-node">${isStep5Done ? '<i class="fas fa-check-double"></i>' : '5'}</div>
+          <span class="stepper-label">5. Solved</span>
+        </div>
+      </div>
+    `;
 
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
         <span class="badge-grievance ${statusClass}">${g.status}</span>
         <span style="font-size:0.7rem; color:var(--text-muted);">${g.id}</span>
       </div>
+
       <h4 class="title-sm" style="margin-bottom:4px;">${g.category}</h4>
-      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">Employer: <strong style="color:var(--text-main);">${g.employerName}</strong> | Amount: <strong style="color:var(--primary);">₹${g.disputedAmount.toLocaleString('en-IN')}</strong></div>
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">
+        Employer: <strong style="color:var(--text-main);">${g.employerName}</strong> 
+        ${g.disputedDays ? `| Days: <strong style="color:var(--text-main);">${g.disputedDays} Days</strong>` : ''}
+        | Disputed: <strong style="color:var(--primary);">₹${(g.disputedAmount || 0).toLocaleString('en-IN')}</strong>
+      </div>
+      
       <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4; margin-bottom:10px;">${g.description}</p>
+
+      <!-- 5-Step Stepper -->
+      ${stepperHTML}
+
+      <!-- Officer remarks block -->
       <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; padding:8px; font-size:0.75rem;">
         <strong style="color:var(--secondary); display:block; margin-bottom:2px;"><i class="fas fa-building-columns"></i> ${g.assignedOfficerState} Nodal Officer Remarks:</strong>
         <span>${g.officerRemarks}</span>
       </div>
+
+      <!-- Grievance Solve Box / Actions -->
+      ${g.status === 'Resolved' ? `
+        <div style="background:rgba(40,167,69,0.14); border:1px solid #28a745; border-radius:10px; padding:10px 12px; margin-top:10px; display:flex; align-items:center; gap:10px;">
+          <i class="fas fa-circle-check" style="color:var(--success); font-size:1.3rem;"></i>
+          <div>
+            <div style="font-weight:700; font-size:0.82rem; color:var(--success);">Grievance Solved & Settlement Closed</div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">Wage relief credited to account, Passbook ledger verified as 'Paid', and dispute officially closed.</div>
+          </div>
+        </div>
+      ` : (g.status === 'Settlement Disbursed' || g.settlementOffered) ? `
+        <div class="grievance-solve-box">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.78rem; font-weight:700; color:#28a745;"><i class="fas fa-hand-holding-dollar"></i> Wage Settlement Held in Escrow</span>
+            <span style="font-weight:800; font-size:0.95rem; color:var(--primary);">₹${(g.disputedAmount || 0).toLocaleString('en-IN')}</span>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-main); margin-bottom:10px; line-height:1.4;">
+            Labor Department has secured your settlement. Tap below to confirm receipt of funds, which will automatically mark this grievance as <strong>Solved</strong> and update your Digital Passbook to <strong>Paid</strong>!
+          </p>
+          <button class="btn-solve-grievance" onclick="handleWorkerConfirmSettlement('${g.id}')">
+            <i class="fas fa-check-double"></i> Confirm Settlement & Solve Grievance
+          </button>
+        </div>
+      ` : `
+        <div style="margin-top:10px; padding:10px 12px; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; font-size:0.75rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="color:var(--text-muted);"><i class="fas fa-hourglass-half"></i> Current Phase: <strong style="color:var(--text-main);">${g.status}</strong></span>
+            <button class="btn-secondary" style="padding:3px 8px; font-size:0.68rem; border-radius:6px; width:auto; border-color:var(--secondary); color:var(--secondary);" onclick="simulateFastTrackSettlement('${g.id}')" title="Simulate instant recovery & settlement disbursement">
+              <i class="fas fa-bolt"></i> Fast-Track Settlement
+            </button>
+          </div>
+          <div style="color:var(--text-muted); font-size:0.72rem; margin-bottom:8px;">
+            Under active inter-state investigation. If you have already received the settlement from employer, you can solve this grievance now:
+          </div>
+          <button class="btn-secondary" style="padding:6px 10px; font-size:0.75rem; width:100%; border-radius:8px; border-color:rgba(16,185,129,0.5); color:var(--primary);" onclick="handleWorkerConfirmSettlement('${g.id}')">
+            <i class="fas fa-handshake"></i> Direct Worker Confirmation: Mark as Solved
+          </button>
+        </div>
+      `}
     `;
     container.appendChild(card);
   });
+}
+
+function handleWorkerConfirmSettlement(grvId) {
+  const g = db.grievances.find(item => item.id === grvId);
+  if (!g) return;
+
+  g.status = 'Resolved';
+  g.settlementOffered = false;
+  g.updatedDate = new Date().toISOString();
+  g.officerRemarks = `Grievance SOLVED & CLOSED. Worker confirmed full relief credit of ₹${(g.disputedAmount || 0).toLocaleString('en-IN')}. Inter-state file closed with compliance clearance.`;
+
+  // Update linked employment in Passbook
+  if (g.linkedJobId) {
+    const job = db.employments.find(e => e.id === g.linkedJobId);
+    if (job) {
+      job.paymentStatus = 'Paid';
+      saveDB('setu_employments', db.employments);
+    }
+  }
+
+  saveDB('setu_grievances', db.grievances);
+
+  // Send worker notification
+  const notif = {
+    id: `notif-${Date.now()}`,
+    workerId: g.workerId,
+    message: `Grievance #${g.id} has been SOLVED! Wage settlement of ₹${(g.disputedAmount || 0).toLocaleString('en-IN')} confirmed and Passbook record updated to 'Paid'.`,
+    status: "unread",
+    date: new Date().toISOString()
+  };
+  db.notifications.unshift(notif);
+  saveDB('setu_notifications', db.notifications);
+
+  showToast(`Grievance #${g.id} marked as Solved! Passbook updated to Paid.`, "success");
+  renderWorkerGrievances();
+  renderPassbook();
+}
+
+function simulateFastTrackSettlement(grvId) {
+  const g = db.grievances.find(item => item.id === grvId);
+  if (!g) return;
+
+  g.status = 'Settlement Disbursed';
+  g.settlementOffered = true;
+  g.settlementNote = `Inter-State Labor Commissioner recovered full settlement of ₹${g.disputedAmount || 14000} from contractor into Escrow. Awaiting worker confirmation to close.`;
+  g.officerRemarks = `Notice enforced. Contractor deposited ₹${g.disputedAmount || 14000} into State Labor Welfare Escrow Account. Worker confirmation requested to finalize closure.`;
+  g.updatedDate = new Date().toISOString();
+
+  saveDB('setu_grievances', db.grievances);
+
+  // Send in-app notification
+  const notif = {
+    id: `notif-${Date.now()}`,
+    workerId: g.workerId,
+    message: `Settlement Disbursed for Grievance #${g.id}! ₹${(g.disputedAmount || 0).toLocaleString('en-IN')} is in Escrow. Please confirm receipt to solve and close.`,
+    status: "unread",
+    date: new Date().toISOString()
+  };
+  db.notifications.unshift(notif);
+  saveDB('setu_notifications', db.notifications);
+
+  showToast(`Fast-Track: Settlement disbursed for #${g.id}! Ready to solve.`, "info");
+  renderWorkerGrievances();
+}
+
+// --- PASSBOOK-POWERED JOB SEARCH & HIRING ---
+let currentJobSearchTab = 'matching';
+
+function renderJobSearch() {
+  if (!currentUser) return;
+
+  // 1. Calculate worker's passbook credentials
+  const userJobs = db.employments.filter(e => e.workerId === currentUser.id);
+  const totalDays = userJobs.reduce((acc, job) => {
+    const start = new Date(job.joiningDate);
+    const end = job.exitDate ? new Date(job.exitDate) : new Date();
+    const diffTime = Math.abs(end - start);
+    return acc + (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1);
+  }, 0);
+
+  const totalEarnings = userJobs.reduce((acc, job) => {
+    const start = new Date(job.joiningDate);
+    const end = job.exitDate ? new Date(job.exitDate) : new Date();
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    return acc + (diffDays * job.dailyWage);
+  }, 0);
+
+  const avgWage = totalDays > 0 ? Math.round(totalEarnings / totalDays) : 650;
+
+  // Render credentials header
+  const credsContainer = document.getElementById('jobsearch-worker-credentials');
+  if (credsContainer) {
+    credsContainer.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+          <i class="fas fa-shield-halved" style="color:var(--primary);"></i> Passbook Credentials
+        </span>
+        <span class="credential-pill highlight"><i class="fas fa-check-circle"></i> Digital ID Verified</span>
+      </div>
+      <div class="credentials-summary-row" style="display:flex; flex-wrap:wrap; gap:6px;">
+        <span class="credential-pill"><i class="fas fa-calendar-check" style="color:var(--primary);"></i> <strong>${totalDays}</strong> Verified Days</span>
+        <span class="credential-pill"><i class="fas fa-coins" style="color:var(--warning);"></i> Avg ₹<strong>${avgWage}</strong> / day</span>
+        <span class="credential-pill"><i class="fas fa-wrench" style="color:var(--info);"></i> <strong>${currentUser.occupation}</strong></span>
+        <span class="credential-pill"><i class="fas fa-location-dot" style="color:var(--danger);"></i> <strong>${currentUser.currentState}</strong></span>
+      </div>
+    `;
+  }
+
+  // Update tab counters
+  const workerApps = db.applications.filter(a => a.workerId === currentUser.id);
+  const jobsBadge = document.getElementById('jobs-count-badge');
+  const appsBadge = document.getElementById('apps-count-badge');
+  if (jobsBadge) jobsBadge.innerText = db.jobs.length;
+  if (appsBadge) appsBadge.innerText = workerApps.length;
+
+  filterJobListings();
+  renderJobApplications();
+}
+
+function filterJobListings() {
+  if (!currentUser) return;
+
+  const query = (document.getElementById('job-search-input')?.value || '').toLowerCase().trim();
+  const stateFilter = document.getElementById('job-filter-state')?.value || 'All';
+  const minWageFilter = parseFloat(document.getElementById('job-filter-wage')?.value) || 0;
+
+  // Compute worker metrics
+  const userJobs = db.employments.filter(e => e.workerId === currentUser.id);
+  const totalDays = userJobs.reduce((acc, job) => {
+    const start = new Date(job.joiningDate);
+    const end = job.exitDate ? new Date(job.exitDate) : new Date();
+    const diffTime = Math.abs(end - start);
+    return acc + (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1);
+  }, 0);
+
+  const totalEarnings = userJobs.reduce((acc, job) => {
+    const start = new Date(job.joiningDate);
+    const end = job.exitDate ? new Date(job.exitDate) : new Date();
+    const diffTime = Math.abs(end - start);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+    return acc + (diffDays * job.dailyWage);
+  }, 0);
+
+  const avgWage = totalDays > 0 ? Math.round(totalEarnings / totalDays) : 650;
+
+  let filtered = db.jobs.filter(job => {
+    // State match
+    if (stateFilter !== 'All' && job.state !== stateFilter) return false;
+    // Wage match
+    if (minWageFilter > 0 && job.dailyWage < minWageFilter) return false;
+    // Search query
+    if (query) {
+      const matchText = `${job.title} ${job.companyName} ${job.requiredSkill} ${job.location} ${job.description}`.toLowerCase();
+      if (!matchText.includes(query)) return false;
+    }
+    return true;
+  });
+
+  const container = document.getElementById('jobsearch-results-list');
+  if (!container) return;
+  container.innerHTML = "";
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="text-center text-muted" style="padding:32px 0;">No jobs found matching your criteria.</div>`;
+    return;
+  }
+
+  filtered.forEach(job => {
+    // Calculate passbook matching score
+    let score = 50;
+    const workerSkill = (currentUser.occupation || '').toLowerCase();
+    const jobSkill = (job.requiredSkill || '').toLowerCase();
+    const jobTitle = (job.title || '').toLowerCase();
+
+    if (workerSkill.includes(jobSkill) || jobTitle.includes(workerSkill) || jobSkill.includes(workerSkill)) {
+      score += 30;
+    }
+    if (totalDays >= job.minPassbookDays) {
+      score += 12;
+    }
+    if (job.state === currentUser.currentState) {
+      score += 6;
+    }
+    score = Math.min(98, score);
+
+    const wageDiff = job.dailyWage - avgWage;
+    const isEligible = totalDays >= job.minPassbookDays;
+
+    const existingApp = db.applications.find(a => a.jobId === job.id && a.workerId === currentUser.id);
+
+    const card = document.createElement('div');
+    card.className = `job-card ${score >= 80 ? 'high-match' : ''}`;
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+        <span class="job-match-badge"><i class="fas fa-sparkles"></i> ${score}% Passbook Match</span>
+        <span style="font-size:0.75rem; color:var(--text-muted);"><i class="fas fa-clock"></i> ${job.urgency}</span>
+      </div>
+
+      <h4 class="title-sm" style="margin-bottom:4px; font-size:0.95rem;">${job.title}</h4>
+      <div style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">
+        <strong style="color:var(--text-main);">${job.companyName}</strong> • ${job.location}
+      </div>
+
+      <!-- Wage comparison row -->
+      <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:10px; padding:8px 12px; margin-bottom:8px;">
+        <div>
+          <span style="font-size:0.7rem; color:var(--text-muted); display:block;">Daily Wage Offer</span>
+          <strong style="font-size:1.05rem; color:var(--primary);">₹${job.dailyWage}</strong>
+          <span style="font-size:0.72rem; color:var(--text-muted);">/ day</span>
+        </div>
+        ${wageDiff > 0 ? `
+          <span class="wage-diff-badge"><i class="fas fa-arrow-trend-up"></i> +₹${wageDiff}/day above avg</span>
+        ` : `
+          <span style="font-size:0.7rem; color:var(--text-muted);">Matches passbook rate</span>
+        `}
+      </div>
+
+      <!-- Passbook requirement check -->
+      <div style="font-size:0.75rem; margin-bottom:8px;">
+        ${isEligible ? `
+          <span style="color:var(--success); font-weight:600;"><i class="fas fa-circle-check"></i> Eligible: ${totalDays}/${job.minPassbookDays} verified days</span>
+        ` : `
+          <span style="color:var(--warning); font-weight:600;"><i class="fas fa-circle-exclamation"></i> Requires ${job.minPassbookDays} passbook days (You have ${totalDays})</span>
+        `}
+      </div>
+
+      <!-- Perks list -->
+      <div class="job-perks-list">
+        ${(job.benefits || []).map(b => `<span class="job-perk-tag"><i class="fas fa-check" style="color:var(--primary); font-size:0.6rem;"></i> ${b}</span>`).join('')}
+      </div>
+
+      <p style="font-size:0.75rem; color:var(--text-muted); line-height:1.4; margin-bottom:12px;">${job.description}</p>
+
+      <!-- Apply Action -->
+      ${existingApp ? `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(30,114,255,0.08); border:1px solid var(--secondary); border-radius:10px; padding:8px 12px;">
+          <span style="font-size:0.75rem; font-weight:600; color:var(--secondary);">
+            <i class="fas fa-circle-check"></i> Applied: ${existingApp.status}
+          </span>
+          <button class="btn-secondary" style="padding:4px 8px; font-size:0.7rem; border-radius:6px; width:auto;" onclick="handleJobSearchTab('applied', document.getElementById('tab-jobs-applied'))">
+            View Application <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+      ` : `
+        <button class="btn-primary" style="padding:10px;" onclick="handleApplyJobWithPassbook('${job.id}')">
+          <i class="fas fa-id-card-clip"></i> 1-Click Apply with Verified Passbook
+        </button>
+      `}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function handleJobSearchTab(tabName, btn) {
+  currentJobSearchTab = tabName;
+  document.querySelectorAll('#jobsearch-screen .category-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const matchingView = document.getElementById('jobsearch-matching-view');
+  const appliedView = document.getElementById('jobsearch-applied-view');
+
+  if (tabName === 'matching') {
+    matchingView.classList.remove('hidden');
+    appliedView.classList.add('hidden');
+    filterJobListings();
+  } else {
+    matchingView.classList.add('hidden');
+    appliedView.classList.remove('hidden');
+    renderJobApplications();
+  }
+}
+
+function handleApplyJobWithPassbook(jobId) {
+  if (!currentUser) return;
+  const job = db.jobs.find(j => j.id === jobId);
+  if (!job) return;
+
+  // Calculate worker verified days
+  const userJobs = db.employments.filter(e => e.workerId === currentUser.id);
+  const totalDays = userJobs.reduce((acc, j) => {
+    const start = new Date(j.joiningDate);
+    const end = j.exitDate ? new Date(j.exitDate) : new Date();
+    const diffTime = Math.abs(end - start);
+    return acc + (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1);
+  }, 0);
+
+  const newApp = {
+    id: `APP-2026-${Math.floor(100 + Math.random() * 900)}`,
+    jobId: job.id,
+    workerId: currentUser.id,
+    workerName: currentUser.name,
+    workerPhone: currentUser.phone,
+    jobTitle: job.title,
+    companyName: job.companyName,
+    dailyWage: job.dailyWage,
+    appliedDate: new Date().toISOString(),
+    passbookDaysVerified: totalDays,
+    status: "Passbook Verified",
+    offerMessage: `Application received with ${totalDays} verified passbook days. Employer is reviewing work history.`
+  };
+
+  db.applications.unshift(newApp);
+  saveDB('setu_applications', db.applications);
+
+  // Send worker notification
+  const notif = {
+    id: `notif-${Date.now()}`,
+    workerId: currentUser.id,
+    message: `Applied for '${job.title}' with ${totalDays} verified passbook days. Employer '${job.companyName}' notified.`,
+    status: "unread",
+    date: new Date().toISOString()
+  };
+  db.notifications.unshift(notif);
+  saveDB('setu_notifications', db.notifications);
+
+  showToast("Application submitted with verified Digital Passbook!", "success");
+  renderJobSearch();
+}
+
+function renderJobApplications() {
+  if (!currentUser) return;
+  const container = document.getElementById('jobsearch-applications-list');
+  if (!container) return;
+  container.innerHTML = "";
+
+  const myApps = db.applications.filter(a => a.workerId === currentUser.id);
+  if (myApps.length === 0) {
+    container.innerHTML = `<div class="text-center text-muted" style="padding:32px 0;">No job applications submitted yet. Browse matching jobs to apply!</div>`;
+    return;
+  }
+
+  myApps.forEach(app => {
+    const card = document.createElement('div');
+    card.className = 'job-card';
+    
+    let statusBadgeClass = 'badge-pending';
+    if (app.status === 'Passbook Verified') statusBadgeClass = 'badge-investigation';
+    if (app.status === 'Offer Letter Issued') statusBadgeClass = 'badge-action';
+    if (app.status === 'Accepted & Joined') statusBadgeClass = 'badge-resolved';
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+        <span class="badge-grievance ${statusBadgeClass}">${app.status}</span>
+        <span style="font-size:0.7rem; color:var(--text-muted);">${app.id}</span>
+      </div>
+
+      <h4 class="title-sm" style="margin-bottom:2px;">${app.jobTitle}</h4>
+      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">
+        <strong style="color:var(--text-main);">${app.companyName}</strong> | Daily Wage: <strong style="color:var(--primary);">₹${app.dailyWage}/day</strong>
+      </div>
+
+      <div style="font-size:0.72rem; color:var(--text-muted); margin-bottom:8px;">
+        Applied with <strong>${app.passbookDaysVerified} verified passbook days</strong> on ${new Date(app.appliedDate).toLocaleDateString()}
+      </div>
+
+      ${app.offerMessage ? `
+        <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; padding:8px; font-size:0.75rem; margin-bottom:10px;">
+          <strong style="color:var(--secondary); display:block; margin-bottom:2px;"><i class="fas fa-bell"></i> Employer Note:</strong>
+          <span>${app.offerMessage}</span>
+        </div>
+      ` : ''}
+
+      ${app.status === 'Offer Letter Issued' ? `
+        <div class="grievance-solve-box" style="margin-top:8px;">
+          <div style="font-size:0.8rem; font-weight:700; color:#28a745; margin-bottom:4px;">
+            <i class="fas fa-file-signature"></i> Offer Letter Issued: ₹${app.dailyWage} / day
+          </div>
+          <p style="font-size:0.72rem; color:var(--text-main); margin-bottom:8px; line-height:1.4;">
+            Employer has verified your digital passbook credentials and approved your hiring. Tap below to accept this offer and immediately register the ongoing job in your Digital Passbook!
+          </p>
+          <button class="btn-solve-grievance" onclick="handleAcceptJobOffer('${app.id}')">
+            <i class="fas fa-handshake"></i> Accept Offer & Add to Passbook
+          </button>
+        </div>
+      ` : app.status === 'Accepted & Joined' ? `
+        <div style="background:rgba(40,167,69,0.12); border:1px solid #28a745; border-radius:8px; padding:8px 12px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:0.75rem; font-weight:700; color:var(--success);"><i class="fas fa-check-circle"></i> Active Job in Passbook</span>
+          <button class="btn-secondary" style="padding:4px 8px; font-size:0.7rem; border-radius:6px; width:auto;" onclick="showScreen('passbook-screen')">View Passbook <i class="fas fa-arrow-right"></i></button>
+        </div>
+      ` : `
+        <div style="font-size:0.72rem; color:var(--text-muted); text-align:right;">
+          <i class="fas fa-spinner fa-spin"></i> Awaiting contractor review...
+        </div>
+      `}
+    `;
+    container.appendChild(card);
+  });
+}
+
+function handleAcceptJobOffer(appId) {
+  if (!currentUser) return;
+  const app = db.applications.find(a => a.id === appId);
+  if (!app) return;
+
+  app.status = 'Accepted & Joined';
+  app.offerMessage = `Offer accepted on ${new Date().toLocaleDateString()}. Work record added to your verified Digital Passbook!`;
+  saveDB('setu_applications', db.applications);
+
+  // Add new ongoing employment to worker's passbook
+  const jobDetails = db.jobs.find(j => j.id === app.jobId);
+  const newEmployment = {
+    id: `JOB-${Date.now().toString().slice(-4)}`,
+    workerId: currentUser.id,
+    employerId: jobDetails ? jobDetails.employerId : "EMP-101",
+    companyName: app.companyName,
+    location: jobDetails ? jobDetails.location : currentUser.currentState,
+    jobTitle: app.jobTitle,
+    joiningDate: new Date().toISOString().split('T')[0],
+    exitDate: "",
+    dailyWage: app.dailyWage,
+    status: "Ongoing",
+    paymentStatus: "Pending"
+  };
+
+  db.employments.unshift(newEmployment);
+  saveDB('setu_employments', db.employments);
+
+  // Send worker notification
+  const notif = {
+    id: `notif-${Date.now()}`,
+    workerId: currentUser.id,
+    message: `Congratulations! Offer accepted for '${app.jobTitle}' at ₹${app.dailyWage}/day with ${app.companyName}. Added to your Digital Passbook!`,
+    status: "unread",
+    date: new Date().toISOString()
+  };
+  db.notifications.unshift(notif);
+  saveDB('setu_notifications', db.notifications);
+
+  showToast("Offer Accepted! Ongoing job added to your Digital Passbook.", "success");
+  renderJobApplications();
+  renderPassbook();
 }
 
 // --- STATE NODAL LEVEL OFFICER DASHBOARD ---
@@ -1321,7 +2014,8 @@ function renderNodalGrievancesList(allGrievances) {
     card.className = 'grievance-card';
     let statusClass = 'badge-pending';
     if (g.status === 'Under Investigation') statusClass = 'badge-investigation';
-    if (g.status === 'Action Taken') statusClass = 'badge-action';
+    if (g.status === 'Action Taken' || g.status === 'Notice Issued') statusClass = 'badge-action';
+    if (g.status === 'Settlement Disbursed') statusClass = 'badge-investigation';
     if (g.status === 'Resolved') statusClass = 'badge-resolved';
 
     card.innerHTML = `
@@ -1336,7 +2030,7 @@ function renderNodalGrievancesList(allGrievances) {
       <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:6px;">
         Worker: <strong style="color:var(--text-main);">${g.workerName}</strong> (${g.workerId})<br/>
         Migrated: <strong>${g.homeState} ➔ ${g.currentState}</strong> | Employer: <strong>${g.employerName}</strong><br/>
-        Amount at stake: <strong style="color:var(--primary);">₹${g.disputedAmount.toLocaleString('en-IN')}</strong>
+        Amount at stake: <strong style="color:var(--primary);">₹${(g.disputedAmount || 0).toLocaleString('en-IN')}</strong>
       </div>
       <p style="font-size:0.8rem; color:var(--text-muted); line-height:1.4; margin-bottom:10px;">${g.description}</p>
       
@@ -1351,13 +2045,16 @@ function renderNodalGrievancesList(allGrievances) {
           </button>
         ` : ''}
         ${g.status !== 'Resolved' ? `
-          <button class="btn-secondary" style="padding:6px 10px; font-size:0.75rem; border-radius:6px; width:auto; border-color:var(--warning); color:var(--warning);" onclick="nodalUpdateGrievanceStatus('${g.id}', 'Action Taken')">
+          <button class="btn-secondary" style="padding:6px 10px; font-size:0.75rem; border-radius:6px; width:auto; border-color:var(--warning); color:var(--warning);" onclick="nodalUpdateGrievanceStatus('${g.id}', 'Notice Issued')">
             <i class="fas fa-gavel"></i> Issue Notice
+          </button>
+          <button class="btn-secondary" style="padding:6px 10px; font-size:0.75rem; border-radius:6px; width:auto; border-color:var(--info); color:var(--info);" onclick="nodalUpdateGrievanceStatus('${g.id}', 'Settlement Disbursed')">
+            <i class="fas fa-money-bill-transfer"></i> Disburse Settlement
           </button>
           <button class="btn-primary" style="padding:6px 10px; font-size:0.75rem; border-radius:6px; width:auto;" onclick="nodalUpdateGrievanceStatus('${g.id}', 'Resolved')">
             <i class="fas fa-check-circle"></i> Resolve & Order Relief
           </button>
-        ` : `<span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fas fa-check-double"></i> Redressal Completed</span>`}
+        ` : `<span style="font-size:0.75rem; color:var(--success); font-weight:700;"><i class="fas fa-check-double"></i> Redressal Completed & Solved</span>`}
       </div>
     `;
     container.appendChild(card);
@@ -1369,7 +2066,8 @@ function nodalUpdateGrievanceStatus(grvId, newStatus) {
   if (!g) return;
 
   let defaultRemark = newStatus === 'Resolved' ? "Wage dispute reconciled and relief credited to worker bank account." :
-    newStatus === 'Action Taken' ? "Official summons issued to contractor by State Labor Department." :
+    newStatus === 'Settlement Disbursed' ? "Labor Department secured full wage settlement into Escrow. Awaiting worker confirmation to close." :
+    newStatus === 'Notice Issued' || newStatus === 'Action Taken' ? "Official summons issued to contractor by State Labor Department." :
     "Inter-state labor cell assigned officer to inspect worksite.";
 
   let remark = prompt(`Enter official Nodal Officer remark for '${newStatus}':`, defaultRemark);
@@ -1378,6 +2076,24 @@ function nodalUpdateGrievanceStatus(grvId, newStatus) {
   g.status = newStatus;
   g.officerRemarks = remark || defaultRemark;
   g.updatedDate = new Date().toISOString();
+
+  if (newStatus === 'Settlement Disbursed') {
+    g.settlementOffered = true;
+    g.settlementNote = `Relief of ₹${g.disputedAmount} recovered from contractor. Ready for worker confirmation.`;
+  }
+
+  if (newStatus === 'Resolved') {
+    g.settlementOffered = false;
+    // Update linked passbook job payment status to Paid
+    if (g.linkedJobId) {
+      const job = db.employments.find(e => e.id === g.linkedJobId);
+      if (job) {
+        job.paymentStatus = 'Paid';
+        saveDB('setu_employments', db.employments);
+      }
+    }
+  }
+
   saveDB('setu_grievances', db.grievances);
 
   // Notify worker
@@ -1494,62 +2210,6 @@ function nodalOpenReportModal() {
   document.getElementById('report-modal').classList.remove('hidden');
 }
 
-// Dynamic Dark Theme Logo Processor
-function initDarkHeaderLogo() {
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.src = 'header-logo.png';
-  img.onload = () => {
-    try {
-      const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-
-      const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const d = imgData.data;
-
-      for (let i = 0; i < d.length; i += 4) {
-        const r = d[i];
-        const g = d[i + 1];
-        const b = d[i + 2];
-
-        // If near-white background, make transparent
-        if (r > 215 && g > 215 && b > 215) {
-          d[i + 3] = 0;
-        } else {
-          const pixelX = (i / 4) % canvas.width;
-          if (pixelX > 430) {
-            // Text area "SetuConnect" -> render crisp white
-            d[i] = 255;
-            d[i + 1] = 255;
-            d[i + 2] = 255;
-          } else {
-            // Emblem area -> boost vibrant emerald green
-            d[i] = Math.min(255, Math.round(r * 1.1));
-            d[i + 1] = Math.min(255, Math.round(g * 1.3));
-            d[i + 2] = Math.min(255, Math.round(b * 1.1));
-          }
-        }
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-      const darkLogoDataUrl = canvas.toDataURL('image/png');
-
-      // Apply dark transparent logo to header and auth badges
-      document.querySelectorAll('.header-logo-img').forEach(el => {
-        el.src = darkLogoDataUrl;
-      });
-      document.querySelectorAll('.auth-logo-img').forEach(el => {
-        el.src = darkLogoDataUrl;
-      });
-    } catch (e) {
-      console.warn("Canvas logo transparency optimization fallback:", e);
-    }
-  };
-}
-
 // App Logout
 function handleLogout() {
   currentUser = null;
@@ -1562,7 +2222,6 @@ function handleLogout() {
 window.addEventListener('load', () => {
   initDatabase();
   initVoiceAssistant();
-  initDarkHeaderLogo();
   
   // Show authentication screen by default
   showScreen('auth-screen');

@@ -271,18 +271,22 @@
 
           <!-- Quick Actions Menu -->
           <h3 class="title-sm" style="margin-bottom:10px;"><i class="fas fa-shapes"></i> Essential Services</h3>
-          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px;">
-            <div class="glass-card text-center" style="cursor:pointer; padding:12px 8px;" onclick="showScreen('health-screen')">
+          <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px;">
+            <div class="glass-card text-center" style="cursor:pointer; padding:10px 4px; border-color:rgba(16,185,129,0.35);" onclick="showScreen('jobsearch-screen')">
+              <i class="fas fa-briefcase" style="font-size:1.35rem; color:var(--primary); margin-bottom:6px;"></i>
+              <div style="font-weight:600; font-size:0.72rem;">Job Search</div>
+            </div>
+            <div class="glass-card text-center" style="cursor:pointer; padding:10px 4px;" onclick="showScreen('health-screen')">
               <i class="fas fa-hand-holding-medical" style="font-size:1.35rem; color:var(--danger); margin-bottom:6px;"></i>
-              <div style="font-weight:600; font-size:0.75rem;">Health Hub</div>
+              <div style="font-weight:600; font-size:0.72rem;">Health Hub</div>
             </div>
-            <div class="glass-card text-center" style="cursor:pointer; padding:12px 8px;" onclick="showScreen('health-screen')">
+            <div class="glass-card text-center" style="cursor:pointer; padding:10px 4px;" onclick="showScreen('health-screen')">
               <i class="fas fa-wallet" style="font-size:1.35rem; color:var(--secondary); margin-bottom:6px;"></i>
-              <div style="font-weight:600; font-size:0.75rem;">Financial Hub</div>
+              <div style="font-weight:600; font-size:0.72rem;">Financial Hub</div>
             </div>
-            <div class="glass-card text-center" style="cursor:pointer; padding:12px 8px; border-color:rgba(255,193,7,0.3);" onclick="showScreen('grievance-screen')">
+            <div class="glass-card text-center" style="cursor:pointer; padding:10px 4px; border-color:rgba(255,193,7,0.3);" onclick="showScreen('grievance-screen')">
               <i class="fas fa-scale-balanced" style="font-size:1.35rem; color:var(--warning); margin-bottom:6px;"></i>
-              <div style="font-weight:600; font-size:0.75rem;">Grievance Desk</div>
+              <div style="font-weight:600; font-size:0.72rem;">Grievance</div>
             </div>
           </div>
         </div>
@@ -291,6 +295,19 @@
         <div id="passbook-screen" class="app-screen-view hidden">
           <h2 class="title-md">Digital Work Passbook</h2>
           <p class="text-muted" style="margin-bottom:16px;">Verified employer logs details, payments & working ledger.</p>
+
+          <!-- Passbook Job Search Promo Banner -->
+          <div class="glass-card" style="background:linear-gradient(135deg, rgba(16,185,129,0.14), rgba(30,114,255,0.14)); border:1px solid rgba(16,185,129,0.4); margin-bottom:14px; padding:12px 14px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+              <div>
+                <div style="font-weight:700; font-size:0.85rem; color:var(--text-main);"><i class="fas fa-search-dollar" style="color:var(--primary); margin-right:4px;"></i> Find Jobs with Verified Passbook</div>
+                <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">Get daily wage up to ₹850 with your verified work history.</div>
+              </div>
+              <button class="btn-primary" style="width:auto; padding:7px 12px; font-size:0.75rem; white-space:nowrap;" onclick="showScreen('jobsearch-screen')">
+                Browse Jobs <i class="fas fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
 
           <!-- Metrics Panel -->
           <div class="ledger-stat-grid">
@@ -485,6 +502,18 @@
             
             <button class="btn-primary" onclick="handleEmployerLogJob()">Log Work & Send Receipt</button>
           </div>
+
+          <!-- Passbook Candidate Applications Received -->
+          <div class="glass-card" style="margin-top:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <h3 class="title-sm" style="margin:0;"><i class="fas fa-id-card-clip"></i> Passbook Candidate Applications</h3>
+              <span class="badge-dot" style="display:inline-block; position:static;" id="emp-app-count-pill"></span>
+            </div>
+            <p class="text-muted" style="font-size:0.75rem; margin-bottom:12px;">Review verified passbook histories and approve instant hire offer letters.</p>
+            <div id="employer-applications-list">
+              <!-- Populated dynamically in app.js -->
+            </div>
+          </div>
         </div>
 
         <!-- SCREEN 10: Admin Monitoring Console -->
@@ -583,40 +612,144 @@
             </div>
             <button class="btn-secondary" style="padding:6px 12px; font-size:0.75rem; border-radius:10px; width:auto;" onclick="showScreen('dashboard-screen')"><i class="fas fa-arrow-left"></i> Back</button>
           </div>
-          <p class="text-muted" style="margin-bottom:16px;">Complaints are directly forwarded to your Home State Labor Commissioner & Nodal Cell for binding intervention.</p>
+          <p class="text-muted" style="margin-bottom:16px;">Direct legal protection: complaints are forwarded to your Home State Labor Commissioner for binding inter-state resolution.</p>
 
           <div class="glass-card">
             <h3 class="title-sm" style="margin-bottom:12px;"><i class="fas fa-file-circle-plus"></i> File New Grievance</h3>
+            
+            <!-- Quick-Pick From Digital Passbook -->
+            <div class="form-group">
+              <label for="grv-passbook-job"><i class="fas fa-book-bookmark" style="color:var(--primary);"></i> Link Job from My Digital Passbook</label>
+              <select id="grv-passbook-job" class="input-field" onchange="handleSelectPassbookJobForGrievance(this.value)">
+                <option value="">-- Choose Employer from Passbook (Auto-Fills) --</option>
+                <!-- Dynamically populated from worker's passbook -->
+              </select>
+            </div>
+
             <div class="form-group">
               <label for="grv-category">Complaint Category</label>
               <select id="grv-category" class="input-field">
-                <option>Wage Non-Payment / Delayed Payment</option>
+                <option>Wage Non-Payment / Delayed Settlement</option>
                 <option>Welfare Scheme Access Denial</option>
                 <option>Workplace Safety / Harassment</option>
-                <option>Employer Breach of Agreed Wage</option>
-                <option>Emergency Eviction / Shelter Dispute</option>
+                <option>Illegal Wage Deduction Below Agreed Rate</option>
+                <option>Emergency Eviction / Camp Dispute</option>
+                <option>Illegal Retention of Aadhaar/Documents</option>
               </select>
             </div>
+
             <div class="form-group">
-              <label for="grv-employer">Employer / Contractor Name</label>
+              <label for="grv-employer">Employer / Contractor / Company Name</label>
               <input type="text" id="grv-employer" class="input-field" placeholder="e.g. L&T Project / Contractor Name">
             </div>
-            <div class="form-group">
-              <label for="grv-amount">Unpaid Amount Involved (₹, if applicable)</label>
-              <input type="number" id="grv-amount" class="input-field" placeholder="e.g. 14000">
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+              <div class="form-group">
+                <label for="grv-days">Unpaid Work Days</label>
+                <input type="number" id="grv-days" class="input-field" placeholder="e.g. 20">
+              </div>
+              <div class="form-group">
+                <label for="grv-amount">Unpaid Amount (₹)</label>
+                <input type="number" id="grv-amount" class="input-field" placeholder="e.g. 14000">
+              </div>
             </div>
+
             <div class="form-group">
-              <label for="grv-desc">Description of Issue</label>
-              <textarea id="grv-desc" class="input-field" rows="3" placeholder="Provide details of working site, supervisor name, dates, and issue..."></textarea>
+              <label for="grv-nodal-jurisdiction">Forward to Authority</label>
+              <select id="grv-nodal-jurisdiction" class="input-field">
+                <option value="home">Home State Nodal Bureau (Protector of Native Migrants)</option>
+                <option value="host">Host State Labor Commissioner</option>
+                <option value="both">Joint Inter-State Labor Desk (Recommended)</option>
+              </select>
             </div>
+
+            <div class="form-group">
+              <label for="grv-desc">Description of Dispute</label>
+              <textarea id="grv-desc" class="input-field" rows="3" placeholder="Provide working site, supervisor name, dates of non-payment, and circumstances..."></textarea>
+            </div>
+
+            <!-- Evidence Attach Mockup -->
+            <label class="form-group" style="display:block;">
+              <span style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:4px;">Attach Proof (Passbook Entry / Wage Slip / Photos)</span>
+              <div class="file-upload-mock" id="grv-upload-box" style="padding:12px; margin:4px 0 12px 0;" onclick="document.getElementById('grv-file-input').click()">
+                <i class="fas fa-paperclip" style="color:var(--primary); font-size:1.2rem; margin-right:6px;"></i>
+                <span id="grv-upload-status" style="font-size:0.8rem;">Tap to upload photo of muster roll / site ID</span>
+              </div>
+              <input type="file" id="grv-file-input" class="hidden" accept="image/*,.pdf" onchange="document.getElementById('grv-upload-status').innerText = 'Document Attached: ' + (this.files[0]?.name || 'Proof.jpg'); document.getElementById('grv-upload-box').style.borderColor='var(--primary)';">
+            </label>
+
             <button class="btn-primary" onclick="handleWorkerSubmitGrievance()">
-              <i class="fas fa-paper-plane"></i> Submit Grievance to Home State Nodal Cell
+              <i class="fas fa-paper-plane"></i> Submit Grievance for Redressal
             </button>
           </div>
 
-          <h3 class="title-sm" style="margin-bottom:10px; margin-top:20px;"><i class="fas fa-list-check"></i> My Filed Complaints</h3>
+          <h3 class="title-sm" style="margin-bottom:10px; margin-top:20px;"><i class="fas fa-list-check"></i> My Filed Complaints & Resolution Progress</h3>
           <div id="worker-grievance-list">
-            <!-- Populated dynamically -->
+            <!-- Populated dynamically with interactive timeline & solve action -->
+          </div>
+        </div>
+
+        <!-- SCREEN 13: Passbook-Powered Job Search -->
+        <div id="jobsearch-screen" class="app-screen-view hidden">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div>
+              <span class="text-muted">Verified Employment Portal</span>
+              <h2 class="title-md">Passbook Job Match</h2>
+            </div>
+            <button class="btn-secondary" style="padding:6px 12px; font-size:0.75rem; border-radius:10px; width:auto;" onclick="showScreen('passbook-screen')"><i class="fas fa-arrow-left"></i> Back</button>
+          </div>
+          <p class="text-muted" style="margin-bottom:14px;">Jobs matched with your verified work history, skills, and daily wage records from your Digital Passbook.</p>
+
+          <!-- Worker Passbook Credential Header -->
+          <div class="passbook-credential-bar" id="jobsearch-worker-credentials">
+            <!-- Dynamically populated in app.js -->
+          </div>
+
+          <!-- Job Navigation Tabs -->
+          <div class="scheme-category-tabs" style="margin-bottom:12px;">
+            <button class="category-tab active" id="tab-jobs-matching" onclick="handleJobSearchTab('matching', this)">
+              <i class="fas fa-briefcase"></i> Matching Jobs (<span id="jobs-count-badge">6</span>)
+            </button>
+            <button class="category-tab" id="tab-jobs-applied" onclick="handleJobSearchTab('applied', this)">
+              <i class="fas fa-file-signature"></i> My Applications (<span id="apps-count-badge">1</span>)
+            </button>
+          </div>
+
+          <!-- Matching Jobs Tab Content -->
+          <div id="jobsearch-matching-view">
+            <!-- Search & Filters -->
+            <div class="glass-card" style="padding:10px 12px; margin-bottom:12px;">
+              <div class="form-group" style="margin-bottom:8px;">
+                <input type="text" id="job-search-input" class="input-field" placeholder="Search by role, company, or skill..." oninput="filterJobListings()">
+              </div>
+              <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <select id="job-filter-state" class="input-field" style="padding:6px 10px; font-size:0.8rem;" onchange="filterJobListings()">
+                  <option value="All">All Working States</option>
+                  <option value="Telangana">Telangana</option>
+                  <option value="Karnataka">Karnataka</option>
+                  <option value="Tamil Nadu">Tamil Nadu</option>
+                  <option value="Uttar Pradesh">Uttar Pradesh</option>
+                </select>
+                <select id="job-filter-wage" class="input-field" style="padding:6px 10px; font-size:0.8rem;" onchange="filterJobListings()">
+                  <option value="0">Any Wage Rate</option>
+                  <option value="700">₹700+ / day</option>
+                  <option value="750">₹750+ / day</option>
+                  <option value="800">₹800+ / day</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Job listings list -->
+            <div id="jobsearch-results-list">
+              <!-- Populated dynamically in app.js -->
+            </div>
+          </div>
+
+          <!-- My Applications Tab Content -->
+          <div id="jobsearch-applied-view" class="hidden">
+            <div id="jobsearch-applications-list">
+              <!-- Populated dynamically in app.js -->
+            </div>
           </div>
         </div>
 
@@ -758,3 +891,4 @@
   <script src="app.js"></script>
 </body>
 </html>
+

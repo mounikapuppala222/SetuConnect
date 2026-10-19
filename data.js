@@ -380,16 +380,27 @@ const DEFAULT_GRIEVANCES = [
     workerPhone: "9876543210",
     homeState: "Bihar",
     currentState: "Telangana",
-    category: "Wage Non-Payment",
+    category: "Wage Non-Payment / Delayed Settlement",
     employerName: "L&T Construction Projects",
+    linkedJobId: "JOB-502",
     disputedAmount: 14000,
+    disputedDays: 20,
     description: "Pending daily wages for 20 working days in May 2026. Subcontractor delaying release despite verified passbook entry.",
-    status: "Under Investigation",
+    status: "Action Taken", // Pending, Under Investigation, Action Taken, Settlement Disbursed, Resolved
     priority: "High",
     filedDate: "2026-07-02T11:20:00Z",
     updatedDate: "2026-07-05T14:10:00Z",
     assignedOfficerState: "Bihar",
-    officerRemarks: "Notice issued to site project manager. Wage settlement meeting fixed with Telangana labor desk."
+    officerRemarks: "Official summons issued to site project manager. Telangana labor desk verified employer bank deposit order.",
+    settlementAmount: 14000,
+    settlementOffered: true,
+    settlementNote: "Employer deposited ₹14,000 to State Labor Escrow Account. Worker confirmation required to complete redressal.",
+    resolutionTimeline: [
+      { step: "Filed", date: "2026-07-02", detail: "Grievance registered with Bihar Nodal Bureau." },
+      { step: "Under Investigation", date: "2026-07-03", detail: "Passbook employment ledger verified; notice drafted." },
+      { step: "Action Taken", date: "2026-07-05", detail: "Summons served to L&T site contractor by Telangana Nodal Desk." },
+      { step: "Settlement Disbursed", date: "2026-07-06", detail: "₹14,000 transferred to DBT settlement pool awaiting worker confirmation." }
+    ]
   },
   {
     id: "GRV-2026-102",
@@ -400,14 +411,23 @@ const DEFAULT_GRIEVANCES = [
     currentState: "Karnataka",
     category: "Welfare Scheme Access Denial",
     employerName: "Private Household",
+    linkedJobId: null,
     disputedAmount: 0,
+    disputedDays: 0,
     description: "Local fair price ration shop in Bengaluru rejected One Nation One Ration Card claiming out-of-state card cannot be scanned.",
-    status: "Action Taken",
+    status: "Resolved",
     priority: "Medium",
     filedDate: "2026-06-25T09:15:00Z",
     updatedDate: "2026-06-28T16:30:00Z",
     assignedOfficerState: "Uttar Pradesh",
-    officerRemarks: "Communicated with Karnataka Civil Supplies Nodal Cell. FPS shopkeeper instructed to enable biometric ONORC terminal."
+    officerRemarks: "Communicated with Karnataka Civil Supplies Nodal Cell. FPS shopkeeper instructed to enable biometric ONORC terminal.",
+    settlementAmount: 0,
+    settlementOffered: false,
+    resolutionTimeline: [
+      { step: "Filed", date: "2026-06-25", detail: "Complaint filed from Bengaluru." },
+      { step: "Action Taken", date: "2026-06-27", detail: "Notice sent to Karnataka Food & Civil Supplies Dept." },
+      { step: "Resolved", date: "2026-06-28", detail: "Ration quota released. Worker confirmed biometric purchase." }
+    ]
   }
 ];
 
@@ -435,3 +455,128 @@ const DEFAULT_STATE_REQUESTS = [
     date: "2026-07-04T12:30:00Z"
   }
 ];
+
+// Verified Job Postings specifically matched with Passbook History
+const INITIAL_JOBS = [
+  {
+    id: "JOB-OP-101",
+    title: "Senior Structural Mason - Metro Rail Phase II",
+    companyName: "L&T Construction Projects",
+    employerId: "EMP-101",
+    location: "Gachibowli Elevated Station, Hyderabad",
+    state: "Telangana",
+    dailyWage: 750,
+    requiredSkill: "Mason",
+    minPassbookDays: 45,
+    openings: 8,
+    urgency: "Immediate Joining",
+    benefits: ["Free AC Worker Camp Housing", "Subsidized Meals (3 Times)", "ESI Medical Coverage", "Weekly DBT Settlement"],
+    verifiedEmployer: true,
+    rating: 4.9,
+    description: "Looking for skilled masons with verified passbook experience in RCC pillar finishing, brickwork alignment, and pre-cast beam casting. Direct EPC payroll, zero contractor deduction."
+  },
+  {
+    id: "JOB-OP-102",
+    title: "Industrial Pipe Welder (MIG / TIG)",
+    companyName: "Tata Projects Infrastructure",
+    employerId: "EMP-102",
+    location: "Electronic City, Bengaluru",
+    state: "Karnataka",
+    dailyWage: 850,
+    requiredSkill: "Welder",
+    minPassbookDays: 60,
+    openings: 5,
+    urgency: "Urgent (Within 48h)",
+    benefits: ["Free Camp Accommodation", "Free Hot Food", "PF + ESI Coverage", "Safety Gear Provided"],
+    verifiedEmployer: true,
+    rating: 4.8,
+    description: "Heavy structural fabrication and argon welding for elevated flyover. Requires minimum 60 days of verified passbook entries in industrial welding."
+  },
+  {
+    id: "JOB-OP-103",
+    title: "Licensed Commercial Electrician",
+    companyName: "Shapoorji Pallonji Engineering",
+    employerId: "EMP-103",
+    location: "Cyber Gateway, Madhapur, Hyderabad",
+    state: "Telangana",
+    dailyWage: 780,
+    requiredSkill: "Electrician",
+    minPassbookDays: 30,
+    openings: 6,
+    urgency: "Regular Hiring",
+    benefits: ["Shared Rental Subsidy", "Travel Allowance", "Accidental Insurance ₹5 Lakhs", "Weekly Bank Payout"],
+    verifiedEmployer: true,
+    rating: 4.7,
+    description: "Conduit wiring, distribution board termination, and backup generator cabling for tech park. Passbook verification mandatory."
+  },
+  {
+    id: "JOB-OP-104",
+    title: "Lead Tile, Granite & Marble Layer",
+    companyName: "Godrej Properties EPC",
+    employerId: "EMP-104",
+    location: "Whitefield Residential Township, Bengaluru",
+    state: "Karnataka",
+    dailyWage: 800,
+    requiredSkill: "Mason",
+    minPassbookDays: 50,
+    openings: 10,
+    urgency: "Immediate Joining",
+    benefits: ["On-Site Worker Housing", "Free Meals Provided", "Direct Wage Credit Every Saturday", "Tool Kit Subsidy"],
+    verifiedEmployer: true,
+    rating: 4.9,
+    description: "Precision laser flooring and granite wall cladding. High wage incentive for workers with 50+ verified passbook days."
+  },
+  {
+    id: "JOB-OP-105",
+    title: "High-Rise Formwork & Shuttering Carpenter",
+    companyName: "GMR Urban Infrastructures",
+    employerId: "EMP-105",
+    location: "Shamshabad Airport SEZ, Hyderabad",
+    state: "Telangana",
+    dailyWage: 740,
+    requiredSkill: "Carpenter",
+    minPassbookDays: 40,
+    openings: 7,
+    urgency: "Urgent",
+    benefits: ["Free Hostel Accommodation", "Free Canteen Meals", "Overtime 1.5x Wage Rate", "Free Medical Card"],
+    verifiedEmployer: true,
+    rating: 4.8,
+    description: "Aluminum and timber shuttering assembly for airport cargo terminal. Inter-state migrant worker welfare camp on premises."
+  },
+  {
+    id: "JOB-OP-106",
+    title: "Commercial Plumbing & Drainage Technician",
+    companyName: "Megha Engineering & Infra (MEIL)",
+    employerId: "EMP-106",
+    location: "Sriperumbudur Industrial Corridor, Chennai",
+    state: "Tamil Nadu",
+    dailyWage: 720,
+    requiredSkill: "Plumber",
+    minPassbookDays: 30,
+    openings: 9,
+    urgency: "Regular",
+    benefits: ["Free Room Accommodation", "Mess Food Facility", "Inter-State Transport Reimbursement", "ESI Clinic"],
+    verifiedEmployer: true,
+    rating: 4.7,
+    description: "CPVC & GI water pipe installation, hydro-testing, and sewage manifold setup. Guaranteed on-time weekly payment."
+  }
+];
+
+// Initial Worker Job Applications
+const DEFAULT_APPLICATIONS = [
+  {
+    id: "APP-2026-901",
+    jobId: "JOB-OP-101",
+    workerId: "BR-MW-2026-9823",
+    workerName: "Ramesh Kumar",
+    workerPhone: "9876543210",
+    jobTitle: "Senior Structural Mason - Metro Rail Phase II",
+    companyName: "L&T Construction Projects",
+    dailyWage: 750,
+    appliedDate: "2026-07-06T14:30:00Z",
+    passbookDaysVerified: 165,
+    status: "Offer Letter Issued", // Applied, Passbook Verified, Offer Letter Issued, Accepted & Joined
+    offerMessage: "Congratulations! Based on your 165 verified passbook days and Mason skill rating, L&T has issued an Offer Letter at ₹750/day. Tap below to accept and automatically add to your Digital Passbook."
+  }
+];
+

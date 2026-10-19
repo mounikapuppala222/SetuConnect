@@ -186,38 +186,34 @@ body[data-theme="light"] {
   white-space: nowrap;
 }
 
-/* Logo Emblem Only (crops the symbol without SetuConnect title) */
+/* Logo Emblem Only (clean isolated green emblem without text) */
 .logo-icon-emblem {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background-color: hsla(222, 28%, 16%, 0.9);
-  background-image: url('logo.png');
-  background-size: 380% auto;
-  background-position: 12% 48%;
+  background-color: transparent;
+  background-image: url('emblem.png');
+  background-size: contain;
+  background-position: center;
   background-repeat: no-repeat;
   display: inline-block;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(255, 255, 255, 0.1);
   flex-shrink: 0;
   vertical-align: middle;
 }
 
 .logo-icon-emblem.card-emblem {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 5px;
   box-shadow: none;
-  background-size: 380% auto;
-  background-position: 12% 48%;
+  background-size: contain;
 }
 
 .logo-icon-emblem.small-emblem {
   width: 18px;
   height: 18px;
   border-radius: 4px;
-  background-size: 380% auto;
-  background-position: 12% 48%;
+  background-size: contain;
 }
 
 /* Full Logo with Title (for Login screen hero only) */
@@ -1075,3 +1071,226 @@ h1, h2, h3, h4 {
     border-radius: 0;
   }
 }
+
+/* ========================================================
+   PASSBOOK-POWERED JOB SEARCH STYLES
+   ======================================================== */
+.passbook-credential-bar {
+  background: linear-gradient(135deg, hsla(var(--primary-hue), 85%, 25%, 0.4), hsla(var(--secondary-hue), 85%, 25%, 0.35));
+  border: 1px solid hsla(var(--primary-hue), 85%, 45%, 0.4);
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.credential-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.credential-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.credential-pill.highlight {
+  border-color: var(--primary);
+  color: #34d399;
+}
+
+.job-search-filter-grid {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.job-card {
+  background: var(--glass-bg);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 14px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.job-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.15);
+}
+
+.job-card.high-match {
+  border-left: 4px solid var(--primary);
+}
+
+.job-match-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 12px;
+  padding: 3px 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.wage-diff-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(40, 167, 69, 0.18);
+  color: #28a745;
+  border: 1px solid rgba(40, 167, 69, 0.35);
+  border-radius: 12px;
+  padding: 2px 7px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.job-perks-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+.job-perk-tag {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* ========================================================
+   GRIEVANCE RESOLUTION LIFECYCLE & SOLVE STYLES
+   ======================================================== */
+.grievance-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 12px 0 14px 0;
+  position: relative;
+  padding: 0 4px;
+}
+
+.grievance-stepper::before {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  right: 20px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.12);
+  z-index: 1;
+}
+
+.stepper-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+  z-index: 2;
+  text-align: center;
+}
+
+.stepper-node {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.stepper-step.done .stepper-node {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.stepper-step.active .stepper-node {
+  background: var(--secondary);
+  border-color: var(--secondary);
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(30, 114, 255, 0.6);
+  animation: pulse-ring 2s infinite;
+}
+
+.stepper-label {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  max-width: 60px;
+}
+
+.stepper-step.done .stepper-label,
+.stepper-step.active .stepper-label {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Worker Grievance Solve Box */
+.grievance-solve-box {
+  background: linear-gradient(135deg, rgba(40, 167, 69, 0.16), rgba(16, 185, 129, 0.22));
+  border: 1.5px solid #28a745;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 12px;
+  box-shadow: 0 4px 16px rgba(40, 167, 69, 0.25);
+  animation: glow-border 2.5s infinite alternate;
+}
+
+@keyframes glow-border {
+  from { border-color: rgba(40, 167, 69, 0.6); box-shadow: 0 0 8px rgba(40, 167, 69, 0.2); }
+  to { border-color: #28a745; box-shadow: 0 0 18px rgba(40, 167, 69, 0.45); }
+}
+
+.btn-solve-grievance {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  transition: all 0.2s ease;
+}
+
+.btn-solve-grievance:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.55);
+}
+
